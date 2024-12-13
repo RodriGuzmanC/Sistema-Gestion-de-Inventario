@@ -6,5 +6,5 @@ interface Publication {
     red_id: number;
     producto_id: number;
     usuario_id: number;
-    fecha_creacion: Date;
+    fecha_creacion?: Date;
   }

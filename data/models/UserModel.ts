@@ -3,5 +3,5 @@ interface User {
     nombre: string;
     correo: string;
     contrasena: string;
-    fecha_creacion: Date;
+    fecha_creacion?: Date;
   }

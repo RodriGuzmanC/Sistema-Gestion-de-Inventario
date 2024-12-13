@@ -4,5 +4,5 @@ interface OrderDetail {
     variacion_id: number;
     cantidad: number;
     precio: number;
-    precio_rebajado: number;
+    precio_rebajado?: number;
   }

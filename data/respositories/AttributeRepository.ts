@@ -15,8 +15,8 @@ export default new class AttributeRepository {
             .select('*');
 
         if (error) {
-            console.error('Error fetching products:', error);
-            throw new Error('Unable to fetch products');
+            console.error('Error fetching attributes:', error);
+            throw new Error('Unable to fetch attributes');
         }
         return data || [];
     }
