@@ -1,7 +1,7 @@
 import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export default class ProductRepository {
+export default new class ProductRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -37,17 +37,21 @@ export default class ProductRepository {
     }
 
     // Crear un nuevo producto
-    async createProduct(product: Product): Promise<Product> {
+    async createProduct(product: Partial<Product>): Promise<Product> {
         const { data, error } = await this.client
             .from('productos')
             .insert(product)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating product:', error);
             throw new Error('Unable to create product');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Actualizar un producto existente
@@ -56,13 +60,17 @@ export default class ProductRepository {
             .from('productos')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating product:', error);
             throw new Error('Unable to update product');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Eliminar un producto por su ID

@@ -2,7 +2,7 @@ import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 
-export default class VariationAttributeRepository {
+export default new class VariationAttributeRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -42,7 +42,7 @@ export default class VariationAttributeRepository {
         const { data, error } = await this.client
             .from('variaciones_atributos')
             .select('*')
-            .eq('variationId', variationId);
+            .eq('variacion_id', variationId);
 
         if (error) {
             console.error('Error fetching variation attributes by variation ID:', error);
@@ -52,17 +52,21 @@ export default class VariationAttributeRepository {
     }
 
     // Crear una nueva variación de atributo
-    async createVariationAttribute(variationAttribute: VariationAttribute): Promise<VariationAttribute> {
+    async createVariationAttribute(variationAttribute: Partial<VariationAttribute>): Promise<VariationAttribute> {
         const { data, error } = await this.client
             .from('variaciones_atributos')
             .insert(variationAttribute)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating variation attribute:', error);
             throw new Error('Unable to create variation attribute');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Actualizar una variación de atributo existente
@@ -71,13 +75,17 @@ export default class VariationAttributeRepository {
             .from('variaciones_atributos')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating variation attribute:', error);
             throw new Error('Unable to update variation attribute');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Eliminar una variación de atributo por su ID

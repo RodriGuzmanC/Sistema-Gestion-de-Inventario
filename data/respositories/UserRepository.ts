@@ -1,7 +1,7 @@
 import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export default class UserRepository {
+export default new class UserRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -41,7 +41,7 @@ export default class UserRepository {
         const { data, error } = await this.client
             .from('usuarios')
             .select('*')
-            .eq('email', email)
+            .eq('correo', email)
             .single();
 
         if (error) {
@@ -52,17 +52,21 @@ export default class UserRepository {
     }
 
     // Crear un nuevo usuario
-    async createUser(user: User): Promise<User> {
+    async createUser(user: Partial<User>): Promise<User> {
         const { data, error } = await this.client
             .from('usuarios')
             .insert(user)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating user:', error);
             throw new Error('Unable to create user');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Actualizar un usuario existente
@@ -71,13 +75,17 @@ export default class UserRepository {
             .from('usuarios')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating user:', error);
             throw new Error('Unable to update user');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Eliminar un usuario por su ID

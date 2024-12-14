@@ -1,7 +1,7 @@
 import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export default class OrderStatusRepository {
+export default new class OrderStatusRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -37,17 +37,21 @@ export default class OrderStatusRepository {
     }
 
     // Crear un nuevo estado de pedido
-    async createOrderStatus(orderStatus: OrderStatus): Promise<OrderStatus> {
+    async createOrderStatus(orderStatus: Partial<OrderStatus>): Promise<OrderStatus> {
         const { data, error } = await this.client
             .from('estados_pedidos')
             .insert(orderStatus)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating order status:', error);
             throw new Error('Unable to create order status');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Actualizar un estado de pedido existente
@@ -56,13 +60,17 @@ export default class OrderStatusRepository {
             .from('estados_pedidos')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating order status:', error);
             throw new Error('Unable to update order status');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0];
     }
 
     // Eliminar un estado de pedido por su ID

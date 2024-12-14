@@ -2,17 +2,18 @@
 import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export default class CategoryProductRepository {
+export default new class CategoryProductRepository {
     private client: SupabaseClient;
 
     constructor() {
         this.client = createSupabaseClient();
     }
 
-    async getProductCategories(): Promise<CategoryProduct[]> {
+    async getProductCategories(productId: number): Promise<CategoryProduct[]> {
         const { data, error } = await this.client
             .from('categorias_productos')
-            .select('*');
+            .select('*')
+            .eq('producto_id', productId);
 
         if (error) {
             console.error('Error fetching product categories:', error);
@@ -35,17 +36,21 @@ export default class CategoryProductRepository {
         return data || null;
     }
 
-    async createProductCategory(productCategory: CategoryProduct): Promise<CategoryProduct> {
+    async createProductCategory(productCategory: Partial<CategoryProduct>): Promise<CategoryProduct> {
         const { data, error } = await this.client
             .from('categorias_productos')
             .insert(productCategory)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating product category:', error);
             throw new Error('Unable to create product category');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     async updateProductCategory(id: number, updates: Partial<CategoryProduct>): Promise<CategoryProduct> {
@@ -53,13 +58,17 @@ export default class CategoryProductRepository {
             .from('categorias_productos')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating product category:', error);
             throw new Error('Unable to update product category');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0];
     }
 
     async deleteProductCategory(id: number): Promise<void> {

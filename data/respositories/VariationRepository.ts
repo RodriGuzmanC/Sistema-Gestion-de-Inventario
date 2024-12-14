@@ -3,7 +3,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 
 
-export default class VariationRepository {
+export default new class VariationRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -43,7 +43,7 @@ export default class VariationRepository {
         const { data, error } = await this.client
             .from('variaciones')
             .select('*')
-            .eq('productId', productId);
+            .eq('producto_id', productId);
 
         if (error) {
             console.error('Error fetching variations by product ID:', error);
@@ -53,17 +53,21 @@ export default class VariationRepository {
     }
 
     // Crear una nueva variación
-    async createVariation(variation: Variation): Promise<Variation> {
+    async createVariation(variation: Partial<Variation>): Promise<Variation> {
         const { data, error } = await this.client
             .from('variaciones')
             .insert(variation)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating variation:', error);
             throw new Error('Unable to create variation');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Actualizar una variación existente
@@ -72,13 +76,17 @@ export default class VariationRepository {
             .from('variaciones')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating variation:', error);
             throw new Error('Unable to update variation');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Eliminar una variación por su ID

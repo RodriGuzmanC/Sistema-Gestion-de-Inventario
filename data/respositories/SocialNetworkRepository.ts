@@ -2,7 +2,7 @@ import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 
-export default class SocialNetworkRepository {
+export default new class SocialNetworkRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -38,17 +38,21 @@ export default class SocialNetworkRepository {
     }
 
     // Crear una nueva red social
-    async createSocialNetwork(socialNetwork: SocialNetwork): Promise<SocialNetwork> {
+    async createSocialNetwork(socialNetwork: Partial<SocialNetwork>): Promise<SocialNetwork> {
         const { data, error } = await this.client
             .from('redes')
             .insert(socialNetwork)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating social network:', error);
             throw new Error('Unable to create social network');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Actualizar una red social existente
@@ -57,13 +61,17 @@ export default class SocialNetworkRepository {
             .from('redes')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating social network:', error);
             throw new Error('Unable to update social network');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Eliminar una red social por su ID

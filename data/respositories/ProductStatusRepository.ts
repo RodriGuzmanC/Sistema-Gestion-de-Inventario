@@ -1,7 +1,7 @@
 import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export default class ProductStatusRepository {
+export default new class ProductStatusRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -37,17 +37,21 @@ export default class ProductStatusRepository {
     }
 
     // Crear un nuevo estado de producto
-    async createProductStatus(productStatus: ProductStatus): Promise<ProductStatus> {
+    async createProductStatus(productStatus: Partial<ProductStatus>): Promise<ProductStatus> {
         const { data, error } = await this.client
             .from('estados_productos')
             .insert(productStatus)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating product status:', error);
             throw new Error('Unable to create product status');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Actualizar un estado de producto existente
@@ -56,13 +60,17 @@ export default class ProductStatusRepository {
             .from('estados_productos')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating product status:', error);
             throw new Error('Unable to update product status');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Eliminar un estado de producto por su ID

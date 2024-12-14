@@ -1,7 +1,7 @@
 import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export default class OrderDetailRepository {
+export default new class OrderDetailRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -9,10 +9,11 @@ export default class OrderDetailRepository {
     }
 
     // Obtener todos los detalles de pedido
-    async getOrderDetails(): Promise<OrderDetail[]> {
+    async getOrderDetails(orderId: number): Promise<OrderDetail[]> {
         const { data, error } = await this.client
             .from('detalles_pedidos')
-            .select('*');
+            .select('*')
+            .eq('pedido_id', orderId);
 
         if (error) {
             console.error('Error fetching order details:', error);
@@ -37,17 +38,21 @@ export default class OrderDetailRepository {
     }
 
     // Crear un nuevo detalle de pedido
-    async createOrderDetail(orderDetail: OrderDetail): Promise<OrderDetail> {
+    async createOrderDetail(orderDetail: Partial<OrderDetail>): Promise<OrderDetail> {
         const { data, error } = await this.client
             .from('detalles_pedidos')
             .insert(orderDetail)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating order detail:', error);
             throw new Error('Unable to create order detail');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Actualizar un detalle de pedido existente
@@ -56,13 +61,17 @@ export default class OrderDetailRepository {
             .from('detalles_pedidos')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating order detail:', error);
             throw new Error('Unable to update order detail');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0];
     }
 
     // Eliminar un detalle de pedido por su ID

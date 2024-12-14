@@ -2,7 +2,7 @@
 import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export default class DeliveryMethodRepository {
+export default new class DeliveryMethodRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -35,17 +35,21 @@ export default class DeliveryMethodRepository {
         return data || null;
     }
 
-    async createDeliveryMethod(deliveryMethod: DeliveryMethod): Promise<DeliveryMethod> {
+    async createDeliveryMethod(deliveryMethod: Partial<DeliveryMethod>): Promise<DeliveryMethod> {
         const { data, error } = await this.client
             .from('metodos_entregas')
             .insert(deliveryMethod)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating delivery method:', error);
             throw new Error('Unable to create delivery method');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     async updateDeliveryMethod(id: number, updates: Partial<DeliveryMethod>): Promise<DeliveryMethod> {
@@ -53,13 +57,17 @@ export default class DeliveryMethodRepository {
             .from('metodos_entregas')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating delivery method:', error);
             throw new Error('Unable to update delivery method');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0];
     }
 
     async deleteDeliveryMethod(id: number): Promise<void> {

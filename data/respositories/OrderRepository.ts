@@ -2,7 +2,7 @@ import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 
-export default class OrderRepository {
+export default new class OrderRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -38,17 +38,21 @@ export default class OrderRepository {
     }
 
     // Crear un nuevo pedido
-    async createOrder(order: Order): Promise<Order> {
+    async createOrder(order: Partial<Order>): Promise<Order> {
         const { data, error } = await this.client
             .from('pedidos')
             .insert(order)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating order:', error);
             throw new Error('Unable to create order');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     // Actualizar un pedido existente
@@ -57,13 +61,17 @@ export default class OrderRepository {
             .from('pedidos')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating order:', error);
             throw new Error('Unable to update order');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0];
     }
 
     // Eliminar un pedido por su ID

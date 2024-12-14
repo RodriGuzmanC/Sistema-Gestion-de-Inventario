@@ -2,7 +2,7 @@
 import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export default class CategoryRepository {
+export default new class CategoryRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -35,17 +35,21 @@ export default class CategoryRepository {
         return data || null;
     }
 
-    async createCategory(category: Category): Promise<Category> {
+    async createCategory(category: Partial<Category>): Promise<Category> {
         const { data, error } = await this.client
             .from('categorias')
             .insert(category)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating category:', error);
             throw new Error('Unable to create category');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     async updateCategory(id: number, updates: Partial<Category>): Promise<Category> {
@@ -53,13 +57,17 @@ export default class CategoryRepository {
             .from('categorias')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating category:', error);
             throw new Error('Unable to update category');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0];
     }
 
     async deleteCategory(id: number): Promise<void> {

@@ -2,7 +2,7 @@
 import createSupabaseClient from '@/utils/dbClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export default class GalleryRepository {
+export default new class GalleryRepository {
     private client: SupabaseClient;
 
     constructor() {
@@ -35,17 +35,21 @@ export default class GalleryRepository {
         return data || null;
     }
 
-    async createGallery(gallery: Gallery): Promise<Gallery> {
+    async createGallery(gallery: Partial<Gallery>): Promise<Gallery> {
         const { data, error } = await this.client
             .from('galerias')
             .insert(gallery)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error creating gallery:', error);
             throw new Error('Unable to create gallery');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
     }
 
     async updateGallery(id: number, updates: Partial<Gallery>): Promise<Gallery> {
@@ -53,13 +57,17 @@ export default class GalleryRepository {
             .from('galerias')
             .update(updates)
             .eq('id', id)
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating gallery:', error);
             throw new Error('Unable to update gallery');
         }
-        return data;
+        if (data.length === 0) {
+            console.error('No records found to update');
+            throw new Error('No records found');
+        }
+        return data[0];
     }
 
     async deleteGallery(id: number): Promise<void> {
