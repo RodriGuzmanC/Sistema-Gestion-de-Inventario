@@ -3,6 +3,7 @@ import Image from "next/image";
 import AttributeTypesService from "@/features/attributes/AttributeTypesService";
 import { useEffect, useState } from "react";
 import AttributeService from "@/features/attributes/AttributeService";
+import UpdateAttributeForm from "./components/atributos/FormularioEdicion";
 
   
 
@@ -12,7 +13,7 @@ export default function Home() {
     // Función async dentro del useEffect
     const handler = async () => {
       try {
-        const attributes = await AttributeService.getAllAttributes();
+        const attributes = await AttributeService.getAll();
         console.log(attributes); // Verifica los productos obtenidos
         setAttributes(attributes); // Llamamos a la función async
       } catch (error) {
@@ -73,6 +74,8 @@ export default function Home() {
             Read our docs
           </a>
         </div>
+        <UpdateAttributeForm></UpdateAttributeForm>
+
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
         <a
