@@ -53,6 +53,23 @@ export default new class CategoryProductRepository {
         return data[0]; 
     }
 
+    async createProductCategories(productCategories: Partial<CategoryProduct>[]): Promise<CategoryProduct[]> {
+        const { data, error } = await this.client
+            .from('categorias_productos')
+            .insert(productCategories)
+            .select();
+
+        if (error) {
+            console.error('Error creating product categories:', error);
+            throw new Error('Unable to create product categories');
+        }
+        if (data.length === 0) {
+            console.error('No records found to create');
+            throw new Error('No records found');
+        }
+        return data[0]; 
+    }
+
     async updateProductCategory(id: number, updates: Partial<CategoryProduct>): Promise<CategoryProduct> {
         const { data, error } = await this.client
             .from('categorias_productos')

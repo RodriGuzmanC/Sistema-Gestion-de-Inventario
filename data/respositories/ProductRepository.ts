@@ -9,10 +9,23 @@ export default new class ProductRepository {
     }
 
     // Obtener todos los productos
-    async getProducts(): Promise<Product[]> {
+    async getProducts(): Promise<ProductWithRelations[]> {
         const { data, error } = await this.client
             .from('productos')
             .select('*');
+
+        if (error) {
+            console.error('Error fetching products:', error);
+            throw new Error('Unable to fetch products');
+        }
+        return data || [];
+    }
+
+    // Obtener todos los productos
+    async getProductsWithRelations(): Promise<ProductWithRelations[]> {
+        const { data, error } = await this.client
+            .from('productos')
+            .select('*, galerias(*), publicaciones(*), categorias_productos(*), variaciones(*), estados_productos(*)');
 
         if (error) {
             console.error('Error fetching products:', error);

@@ -8,3 +8,7 @@ interface Publication {
     usuario_id: number;
     fecha_creacion?: Date;
   }
+
+  interface PublicationWithRelations extends Publication{
+    redes: SocialNetwork[];
+  }

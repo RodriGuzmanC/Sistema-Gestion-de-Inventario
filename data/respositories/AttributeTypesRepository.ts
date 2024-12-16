@@ -21,6 +21,19 @@ export default new class AttributeTypesRepository {
         return data || [];
     }
 
+    async getAttributeTypesWithAttributes(): Promise<AttributeTypesWithAttributes[]> {
+        const { data, error } = await this.client
+            .from('tipos_atributos')
+            .select('*, atributos(*)');
+
+        if (error) {
+            console.error('Error fetching attributes types with attributes:', error);
+            throw new Error('Unable to fetch attributes types with attributes');
+        }
+        return data || [];
+    }
+
+
     async getAttributeType(id: number): Promise<AttributeType | null> {
         const { data, error } = await this.client
             .from('tipos_atributos')
