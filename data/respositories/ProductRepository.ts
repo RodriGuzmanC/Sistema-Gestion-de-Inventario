@@ -9,10 +9,10 @@ export default new class ProductRepository {
     }
 
     // Obtener todos los productos
-    async getProducts(): Promise<ProductWithRelations[]> {
+    async getProducts(): Promise<ProductWithBasicRelations[]> {
         const { data, error } = await this.client
             .from('productos')
-            .select('*');
+            .select('*, galerias(*), categorias_productos(*, categorias(*)), variaciones(*), estados_productos(*)');
 
         if (error) {
             console.error('Error fetching products:', error);
@@ -22,31 +22,17 @@ export default new class ProductRepository {
     }
 
     // Obtener todos los productos
-    async getProductsWithRelations(): Promise<ProductWithRelations[]> {
+    async getProductWithRelations(id: number): Promise<ProductWithFullRelations> {
         const { data, error } = await this.client
             .from('productos')
-            .select('*, galerias(*), publicaciones(*), categorias_productos(*), variaciones(*), estados_productos(*)');
-
+            .select('*, galerias(*), estados_productos(*), variaciones(*, variaciones_atributos(*, atributos(*, tipos_atributos(*)))), categorias_productos(*, categorias(*)), publicaciones(*, redes(*))')
+            .eq('id', id)
+            .single();
         if (error) {
             console.error('Error fetching products:', error);
             throw new Error('Unable to fetch products');
         }
         return data || [];
-    }
-
-    // Obtener un producto específico por su ID
-    async getProduct(id: number): Promise<Product | null> {
-        const { data, error } = await this.client
-            .from('productos')
-            .select('*')
-            .eq('id', id)
-            .single();
-
-        if (error) {
-            console.error('Error fetching product:', error);
-            throw new Error('Unable to fetch product');
-        }
-        return data || null;
     }
 
     // Crear un nuevo producto

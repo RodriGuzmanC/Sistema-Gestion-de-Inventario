@@ -3,3 +3,7 @@ interface Attribute{
     tipo_atributo_id: number,
     valor: string
 }
+
+interface AttributeWithRelations extends Attribute {
+    tipos_atributos: AttributeType
+}

@@ -81,4 +81,6 @@ export default new class CategoryRepository {
             throw new Error('Unable to delete category');
         }
     }
+
+    
 }

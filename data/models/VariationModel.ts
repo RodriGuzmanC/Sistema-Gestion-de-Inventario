@@ -5,3 +5,7 @@ interface Variation {
     precio_mayorista: number;
     stock: number;
   }
+
+  interface VariationWithRelations extends Variation{
+    variaciones_atributos: VariationAttributeWithRelations[]
+  }

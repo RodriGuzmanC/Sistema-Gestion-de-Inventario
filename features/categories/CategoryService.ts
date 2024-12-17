@@ -60,7 +60,7 @@ export default new class CategoryService {
     async create(category: Partial<Category>): Promise<Category> {
         try {
             // Validar los datos de entrada
-            createSchema.parse({ ...category });
+            //createSchema.parse({ ...category });
 
             // Llamamos al repositorio para crear la nueva categoría
             const res = await CategoryRepository.createCategory(category);

@@ -28,9 +28,9 @@ const baseSchema = {
             message: "El precio mayorista debe ser un número válido",
         }),
 
-    estado_producto_id: z.number()
+    /*estado_producto_id: z.number()
         .int("El ID del estado del producto debe ser un número entero")
-        .positive("El ID del estado del producto debe ser un número positivo"),
+        .positive("El ID del estado del producto debe ser un número positivo"),*/
 
 };
 const updateSchema = z.object({
@@ -49,7 +49,7 @@ const createSchema = z.object({
 
 export default new class ProductService {
     // Obtener todos los productos
-    async getAll(): Promise<Product[]> {
+    async getAll(): Promise<ProductWithBasicRelations[]> {
         try {
             return await ProductRepository.getProducts(); // Llama al repositorio para obtener todos los productos
         } catch (error: any) {
@@ -59,13 +59,13 @@ export default new class ProductService {
     }
 
     // Obtener un producto específico por su ID
-    async getOne(id: number): Promise<Product | null> {
+    async getOne(id: number): Promise<ProductWithFullRelations | null> {
         try {
             // Validar el ID de entrada
             idValidateSchema.parse({ id });
 
             // Llama al repositorio para obtener un producto por su ID
-            return await ProductRepository.getProduct(id);
+            return await ProductRepository.getProductWithRelations(id);
         } catch (error: any) {
             console.error('Error in ProductService:', error.message);
             if (error instanceof z.ZodError) {
@@ -74,6 +74,8 @@ export default new class ProductService {
             throw new Error('El producto no existe o no se pudo obtener.');
         }
     }
+
+    
 
     // Crear un nuevo producto
     async create(product: Partial<Product>): Promise<Product> {
@@ -97,7 +99,7 @@ export default new class ProductService {
     async update(id: number, updates: Partial<Product>): Promise<Product> {
         try {
             // Validar los datos de entrada con el esquema de actualización
-            updateSchema.parse({ id, ...updates });
+            //updateSchema.parse({ id, ...updates });
 
             // Llama al repositorio para actualizar el producto
             const res = await ProductRepository.updateProduct(id, updates);

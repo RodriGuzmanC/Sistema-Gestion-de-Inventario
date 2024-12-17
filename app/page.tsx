@@ -3,7 +3,9 @@ import Image from "next/image";
 import AttributeTypesService from "@/features/attributes/AttributeTypesService";
 import { useEffect, useState } from "react";
 import AttributeService from "@/features/attributes/AttributeService";
-import UpdateAttributeForm from "./components/atributos/FormularioEdicion";
+import UpdateAttributeForm from "./components/attribute/FormularioEdicion";
+import AttributeTypesRepository from "@/data/respositories/AttributeTypesRepository";
+import ProductService from "@/features/products/ProductService";
 
   
 
@@ -13,9 +15,9 @@ export default function Home() {
     // Función async dentro del useEffect
     const handler = async () => {
       try {
-        const attributes = await AttributeService.getAll();
+        const attributes = await ProductService.getAll();
         console.log(attributes); // Verifica los productos obtenidos
-        setAttributes(attributes); // Llamamos a la función async
+        //setAttributes(attributes); // Llamamos a la función async
       } catch (error) {
         console.error("Error fetching products:", error);
       }

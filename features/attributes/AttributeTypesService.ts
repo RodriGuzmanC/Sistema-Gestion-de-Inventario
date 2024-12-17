@@ -29,6 +29,15 @@ export default new class AttibuteTypesService {
         }
     }
 
+    async getAllWithAttributes(): Promise<AttributeTypesWithAttributes[]> {
+        try {
+            return await AttributeTypesRepository.getAttributeTypesWithAttributes();
+        } catch (error: any) {
+            console.error('Error in AttributeService:', error.message);
+            throw new Error('No se obtuvieron los registros, intentalo mas tarde.');
+        }
+    }
+
     async getOne(id: number): Promise<AttributeType | null> {
         try {
             // Validacion de los datos

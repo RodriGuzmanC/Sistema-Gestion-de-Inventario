@@ -8,10 +8,20 @@ interface Product {
   estado_producto_id: number;
 }
 
-interface ProductWithRelations extends Product {
+interface ProductWithFullRelations extends Product {
+  estados_productos: ProductStatus[];
+  galerias: Gallery[]
+  variaciones: VariationWithRelations[]
+  categorias_productos: CategoryProductWithRelations[]
+  publicaciones: PublicationWithRelations[]
+}
+
+
+
+
+interface ProductWithBasicRelations extends Product {
   estados_productos: ProductStatus[];
   galerias: Gallery[]
   variaciones: Variation[]
-  categorias_productos: CategoryProduct[]
-  publicaciones: Publication[]
+  categorias_productos: CategoryProductWithRelations[]
 }

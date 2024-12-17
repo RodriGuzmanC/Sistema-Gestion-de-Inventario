@@ -57,6 +57,23 @@ export default new class CategoryProductService {
     }
 
     // Crear una nueva relación categoría-producto
+    async createMultiple(categoriesProduct: Partial<CategoryProduct>[]): Promise<CategoryProduct[]> {
+        try {
+            // Validar los datos de entrada
+            //createSchema.parse({ ...categoryProduct });
+            //categoriesProduct.forEach((cp) => createSchema.parse(cp));
+            return await CategoryProductRepository.createProductCategories(categoriesProduct);
+        } catch (error) {
+            console.error('Error in create:', error);
+            if (error instanceof z.ZodError) {
+                throw new Error(error.errors.map((e) => e.message).join(", "));
+            }
+            throw new Error('Error al crear la relación categoría-producto, intenta más tarde.');
+        }
+    }
+
+
+    // Crear una nueva relación categoría-producto
     async create(categoryProduct: Partial<CategoryProduct>): Promise<CategoryProduct> {
         try {
             // Validar los datos de entrada
@@ -95,6 +112,22 @@ export default new class CategoryProductService {
             idValidateSchema.parse({ id });
 
             await CategoryProductRepository.deleteProductCategory(id);
+        } catch (error: any) {
+            console.error('Error in delete:', error.message);
+            if (error instanceof z.ZodError) {
+                throw new Error(error.errors.map((e) => e.message).join(", "));
+            }
+            throw new Error('Error al eliminar la relación categoría-producto, intenta más tarde.');
+        }
+    }
+
+
+    async deleteMultiple(ids: number[]): Promise<void> {
+        try {
+            // Validar el ID
+            //idValidateSchema.parse({ id });
+
+            await CategoryProductRepository.deleteProductCategories(ids);
         } catch (error: any) {
             console.error('Error in delete:', error.message);
             if (error instanceof z.ZodError) {

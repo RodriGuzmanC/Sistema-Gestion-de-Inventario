@@ -99,4 +99,18 @@ export default new class CategoryProductRepository {
             throw new Error('Unable to delete product category');
         }
     }
+
+    async deleteProductCategories(ids: number[]): Promise<void> {
+
+        const { data, error } = await this.client
+            .from('categorias_productos')
+            .delete()
+            .in('id', ids) // Añadimos las condiciones OR dinámicamente
+            .select();
+
+        if (error) {
+            console.error('Error deleting product category:', error);
+            throw new Error('Unable to delete product category');
+        }
+    }
 }
