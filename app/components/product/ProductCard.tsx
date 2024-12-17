@@ -71,7 +71,7 @@ export function ProductCard({product}: Props) {
                 <span>Eliminar</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link href={'dashboard/productos/1/variaciones'}>
+                <Link href={`productos/${product.id}/variaciones/listar`}>
                 <Layers className="mr-2 h-4 w-4" />
                 <span>Ver variaciones</span>
                 </Link>

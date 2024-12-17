@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { MoreVertical, Pencil, Trash } from 'lucide-react'
+import { EditVariationModal } from "./EditVariationModal"
+import { useState } from "react"
 
 interface VariationProps {
   variation: VariationWithRelations
@@ -19,6 +21,8 @@ export function VariationCard({
   onEdit,
   onDelete,
 }: VariationProps) {
+  const [open, setOpen] = useState(false);
+
   return (
     <Card className="relative">
       <CardContent className="p-6">
@@ -28,10 +32,10 @@ export function VariationCard({
               <MoreVertical className="h-4 w-4" />
               <span className="sr-only">Open menu</span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(variation.id.toString())}>
+            <DropdownMenuContent align="end" >
+              <DropdownMenuItem >
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit
+                Es
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(variation.id.toString())}
@@ -67,6 +71,8 @@ export function VariationCard({
               <span className="text-muted-foreground">Stock:</span>
               <span className="font-medium">{variation.stock} Unidades</span>
             </div>
+            <EditVariationModal variationObj={variation}></EditVariationModal>
+
           </div>
         </div>
       </CardContent>

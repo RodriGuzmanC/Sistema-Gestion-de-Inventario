@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/sidebar"
 import { SharedFilter } from '../components/SharedFilter'
 import { ProductCard } from '../components/product/ProductCard'
+import Link from 'next/link'
+import { Toaster } from '@/components/ui/sonner'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -47,7 +49,7 @@ export default function Layout({ children }: LayoutProps) {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton size="lg" asChild>
-                  <a href="/">
+                  <Link href="/">
                     <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                       <Package className="size-4" />
                     </div>
@@ -55,7 +57,7 @@ export default function Layout({ children }: LayoutProps) {
                       <span className="font-semibold">Mi Aplicación</span>
                       <span className="text-xs text-muted-foreground">Dashboard</span>
                     </div>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -64,34 +66,34 @@ export default function Layout({ children }: LayoutProps) {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href="/dashboard/productos">
+                  <Link href="/dashboard/productos">
                     <Package className="mr-2 size-4" />
                     Productos
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href="/dashboard/usuarios">
+                  <Link href="/dashboard/usuarios">
                     <Users className="mr-2 size-4" />
                     Usuarios
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href="/dashboard/redes-sociales">
+                  <Link href="/dashboard/redes-sociales">
                     <Share2 className="mr-2 size-4" />
                     Redes Sociales
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href="/dashboard/pedidos">
+                  <Link href="/dashboard/pedidos">
                     <ShoppingCart className="mr-2 size-4" />
                     Pedidos
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -100,6 +102,7 @@ export default function Layout({ children }: LayoutProps) {
       </SidebarProvider>
       <main className="p-6 w-full">
         {children}
+        <Toaster />
       </main>
     </div>
   )

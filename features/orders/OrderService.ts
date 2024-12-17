@@ -47,7 +47,7 @@ const createSchema = z.object({
 
 export default new class OrderService {
     // Obtener todas las órdenes
-    async getAll(): Promise<Order[]> {
+    async getAll(): Promise<OrderWithBasicRelations[]> {
         try {
             return await OrderRepository.getOrders(); // Llamamos al repositorio para obtener todas las órdenes.
         } catch (error: any) {

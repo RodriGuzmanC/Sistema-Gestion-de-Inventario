@@ -26,11 +26,10 @@ export default function VariationsList({params} : {params: Params}) {
     useEffect(() => {
         async function cargar() {
             const res = await ProductRepository.getProductWithRelations(parseInt(params.id))
-            console.log(res)
             serProduct(res)
         }
         cargar()
-    })
+    }, [])
 
     if (product == undefined) return (<div>Producto no definido</div>)
     return (

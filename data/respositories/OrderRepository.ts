@@ -10,10 +10,10 @@ export default new class OrderRepository {
     }
 
     // Obtener todos los pedidos
-    async getOrders(): Promise<Order[]> {
+    async getOrders(): Promise<OrderWithBasicRelations[]> {
         const { data, error } = await this.client
             .from('pedidos')
-            .select('*');
+            .select('*, estados_pedidos(*), metodos_entregas(*)');
 
         if (error) {
             console.error('Error fetching orders:', error);
