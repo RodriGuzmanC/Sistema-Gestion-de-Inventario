@@ -1,11 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { MinusCircle, PlusCircle } from 'lucide-react'
+import ProductService from '@/features/products/ProductService'
+import CategoryService from '@/features/categories/CategoryService'
+import AttributeTypesService from '@/features/attributes/AttributeTypesService'
+import VariationAttributeService from '@/features/variations/VariationAttributeService'
 
 interface ProductVariation {
     id: string
@@ -22,71 +26,74 @@ interface OrderItem extends ProductVariation {
     discountedPrice?: number
 }
 
+
+interface PrepareOrderDetail extends OrderDetail {
+    id: number,
+    nombre_producto: string,
+    variacion: VariationWithRelations,
+
+}
+
 export default function OrderDetail() {
     const [selectedProduct, setSelectedProduct] = useState<string>('')
     const [selectedSize, setSelectedSize] = useState<string>('')
     const [selectedColor, setSelectedColor] = useState<string>('')
-    const [variations, setVariations] = useState<ProductVariation[]>([])
-    const [orderItems, setOrderItems] = useState<OrderItem[]>([])
-
-    // Mock data - replace with actual API calls
-    const products = [
-        { id: '1', name: 'Vestido Halfon' },
-        { id: '2', name: 'Vestido Elegante' },
-    ]
-
-    const sizes = ['S', 'M', 'L', 'XL']
-    const colors = ['Rojo', 'Azul marino', 'Negro']
+    const [filteredVariations, setFilteredVariations] = useState<VariationWithRelations[]>([])
+    const [orderItems, setOrderItems] = useState<Partial<PrepareOrderDetail>[]>([])
 
     const handleFilter = () => {
-        // Mock filtered results - replace with actual API call
-        setVariations([
-            {
-                id: '1',
-                color: 'Azul marino',
-                size: 'S',
-                stock: 12,
-                retailPrice: 70,
-                wholesalePrice: 35,
-            },
-            {
-                id: '2',
-                color: 'Negro',
-                size: 'M',
-                stock: 12,
-                retailPrice: 70,
-                wholesalePrice: 35,
-            },
-        ])
+
+        console.log("Los filtros elegidos:")
+        console.log(selectedValues)
+
+        const valores = Object.values(selectedValues).map((valor) => parseInt(valor));
+        console.log(valores)
+
+        // Buscamos las variaciones que coincidan con los atributos seleccionados
+        const variacionesFiltradas = producto?.variaciones.filter((variacion) =>
+            variacion.variaciones_atributos.some((variacionAtributo) =>
+                valores.includes(variacionAtributo.atributo_id)
+            )
+        );
+
+        console.log("Variaciones filtradas:");
+        console.log(variacionesFiltradas);
+
+        // Opcional: Guarda las variaciones en el estado
+        setFilteredVariations(variacionesFiltradas ?? []);
+
     }
 
-    const addToOrder = (variation: ProductVariation) => {
+    const addToOrder = (variation: VariationWithRelations) => {
         setOrderItems([
             ...orderItems,
             {
-                ...variation,
-                quantity: 1,
-                price: variation.retailPrice,
+                id: orderItems.length + 1,
+                cantidad: 1,
+                precio: variation.precio_unitario,
+                precio_rebajado: 0,
+                nombre_producto: producto?.nombre_producto ?? '',
+                variacion: variation
             },
         ])
     }
 
-    const updateQuantity = (id: string, increment: boolean) => {
+    const updateQuantity = (id: number, increment: boolean) => {
         setOrderItems(
             orderItems.map((item) =>
                 item.id === id
                     ? {
                         ...item,
-                        quantity: increment
-                            ? item.quantity + 1
-                            : Math.max(1, item.quantity - 1),
+                        cantidad: increment
+                            ? (item.cantidad ?? 0) + 1
+                            : Math.max(1, (item.cantidad ?? 0) - 1),
                     }
                     : item
             )
         )
     }
 
-    const updatePrice = (id: string, price: number, isDiscounted: boolean) => {
+    const updatePrice = (id: number, price: number, isDiscounted: boolean) => {
         setOrderItems(
             orderItems.map((item) =>
                 item.id === id
@@ -97,6 +104,45 @@ export default function OrderDetail() {
             )
         )
     }
+
+    const [productos, setProductos] = useState<ProductWithBasicRelations[]>([])
+    const [producto, setProducto] = useState<ProductWithFullRelations | null>(null)
+    const [atributos, setAtributos] = useState<AttributeTypesWithAttributes[]>([])
+    // Estado para los valores seleccionados de cada filtro
+    const [selectedValues, setSelectedValues] = useState<Record<string, string>>({});
+
+    // Maneja el cambio de valor de cada filtro
+    const handleValueChange = (tipoAtributoId: string, value: string) => {
+        setSelectedValues((prevState) => ({
+            ...prevState,
+            [tipoAtributoId]: value, // Actualiza el valor del filtro correspondiente
+        }));
+    };
+
+    useEffect(() => {
+        if (!selectedProduct) return;
+
+        async function obtenerProductoSeleccionado() {
+            const producto = await ProductService.getOne(parseInt(selectedProduct))
+            setProducto(producto)
+        }
+        obtenerProductoSeleccionado()
+    }, [selectedProduct])
+
+
+    useEffect(() => {
+        async function cargarProductos() {
+            const productos = await ProductService.getAll()
+            setProductos(productos)
+        }
+        async function cargarCategorias() {
+            const atributos = await AttributeTypesService.getAllWithAttributes()
+            setAtributos(atributos)
+        }
+        cargarCategorias()
+        cargarProductos()
+
+    }, [])
 
     return (
         <div className="container mx-auto p-4">
@@ -115,9 +161,17 @@ export default function OrderDetail() {
                                 <SelectValue placeholder="Seleccionar producto" />
                             </SelectTrigger>
                             <SelectContent>
-                                {products.map((product) => (
-                                    <SelectItem key={product.id} value={product.id}>
-                                        {product.name}
+                                {productos.map((product) => (
+                                    <SelectItem
+                                        key={product.id} value={product.id.toString()}>
+                                        <div className="flex items-center gap-3">
+                                            <img
+                                                src={product.url_imagen}
+                                                alt={product.nombre_producto}
+                                                className="w-8 h-8 object-cover"
+                                            />
+                                            <p>{product.nombre_producto}</p>
+                                        </div>
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -126,8 +180,25 @@ export default function OrderDetail() {
 
                     <div className="space-y-4">
                         <h2 className="text-lg font-semibold">Filtrar por atributos</h2>
-                        <div className="grid sm:grid-cols-2 gap-4">
-                            <Select value={selectedSize} onValueChange={setSelectedSize}>
+                        <form className="grid sm:grid-cols-2 gap-4">
+                            {atributos.map((tipoAtributo) => (
+                                <Select
+                                    value={selectedValues[tipoAtributo.id.toString()] || ''}
+                                    onValueChange={(value) => handleValueChange(tipoAtributo.id.toString(), value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={tipoAtributo.nombre.toLowerCase()} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {tipoAtributo.atributos.map((atributo) => (
+                                            <SelectItem key={atributo.id} value={atributo.id.toString()}>
+                                                {atributo.valor}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ))}
+                            {/*<Select value={selectedSize} onValueChange={setSelectedSize}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Talla" />
                                 </SelectTrigger>
@@ -151,33 +222,35 @@ export default function OrderDetail() {
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
-                            </Select>
-                        </div>
+                            </Select>*/}
+                        </form>
                         <Button onClick={handleFilter} className="w-full sm:w-auto">
                             Filtrar
                         </Button>
                     </div>
 
-                    {variations.length > 0 && (
+                    {filteredVariations.length > 0 && (
                         <div className="space-y-4">
                             <h2 className="text-lg font-semibold">Resultados de búsqueda</h2>
                             <div className="grid gap-4">
-                                {variations.map((variation) => (
+                                {filteredVariations.map((variation) => (
                                     <Card key={variation.id}>
                                         <CardContent className="p-4">
                                             <div className="flex items-center justify-between">
                                                 <div>
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <div className="w-4 h-4 rounded-full bg-primary" />
-                                                        <span className="font-medium">{variation.color}</span>
-                                                        <span className="text-sm text-muted-foreground">
-                                                            {variation.size}
-                                                        </span>
+                                                        {variation.variaciones_atributos.map((variacionAtributo) => (
+                                                            <div className="rounded-full p-2 text-white bg-primary">
+
+                                                                <span className="font-medium">{variacionAtributo.atributos.valor}</span>
+                                                            </div>
+
+                                                        ))}
                                                     </div>
                                                     <div className="space-y-1 text-sm">
                                                         <p>Stock: {variation.stock}</p>
-                                                        <p>Precio unitario: S/ {variation.retailPrice}</p>
-                                                        <p>Precio mayorista: S/ {variation.wholesalePrice}</p>
+                                                        <p>Precio unitario: S/ {variation.precio_unitario}</p>
+                                                        <p>Precio mayorista: S/ {variation.precio_mayorista}</p>
                                                     </div>
                                                 </div>
                                                 <Button
@@ -207,12 +280,17 @@ export default function OrderDetail() {
                                 <Card key={item.id}>
                                     <CardContent className="p-4">
                                         <div className="space-y-4">
+                                            <h1>{item.nombre_producto}</h1>
+
                                             <div className="flex items-center gap-2">
-                                                <div className="w-4 h-4 rounded-full bg-primary" />
-                                                <span className="font-medium">{item.color}</span>
-                                                <span className="text-sm text-muted-foreground">
-                                                    {item.size}
-                                                </span>
+                                                {item.variacion?.variaciones_atributos.map((variacionAtributo, index) => (
+                                                    <div className="w-auto px-4 py-2 rounded-full bg-primary text-white text-center">
+                                                        <span key={index} className="font-medium">
+                                                            {variacionAtributo.atributos.valor}
+                                                        </span>
+                                                    </div>
+
+                                                ))}
                                             </div>
 
                                             <div className="grid sm:grid-cols-4 gap-4">
@@ -222,15 +300,15 @@ export default function OrderDetail() {
                                                         <Button
                                                             variant="outline"
                                                             size="icon"
-                                                            onClick={() => updateQuantity(item.id, false)}
+                                                            onClick={() => updateQuantity(item.id ?? 0, false)}
                                                         >
                                                             <MinusCircle className="h-4 w-4" />
                                                         </Button>
-                                                        <span className="w-8 text-center">{item.quantity}</span>
+                                                        <span className="w-8 text-center">{item.cantidad}</span>
                                                         <Button
                                                             variant="outline"
                                                             size="icon"
-                                                            onClick={() => updateQuantity(item.id, true)}
+                                                            onClick={() => updateQuantity(item.id ?? 0, true)}
                                                         >
                                                             <PlusCircle className="h-4 w-4" />
                                                         </Button>
@@ -243,9 +321,9 @@ export default function OrderDetail() {
                                                         <span>S/</span>
                                                         <Input
                                                             type="number"
-                                                            value={item.price}
+                                                            value={item.precio}
                                                             onChange={(e) =>
-                                                                updatePrice(item.id, Number(e.target.value), false)
+                                                                updatePrice(item.id ?? 0, Number(e.target.value), false)
                                                             }
                                                             className="w-20"
                                                         />
@@ -260,9 +338,9 @@ export default function OrderDetail() {
                                                         <span>S/</span>
                                                         <Input
                                                             type="number"
-                                                            value={item.discountedPrice || ''}
+                                                            value={item.precio_rebajado || ''}
                                                             onChange={(e) =>
-                                                                updatePrice(item.id, Number(e.target.value), true)
+                                                                updatePrice(item.id ?? 0, Number(e.target.value), true)
                                                             }
                                                             className="w-20"
                                                         />

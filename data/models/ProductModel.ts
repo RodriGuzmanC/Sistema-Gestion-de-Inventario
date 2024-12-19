@@ -6,6 +6,7 @@ interface Product {
   precio_unitario: number;
   precio_mayorista: number;
   estado_producto_id: number;
+  stock: number;
 }
 
 interface ProductWithFullRelations extends Product {

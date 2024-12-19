@@ -74,28 +74,21 @@ export default function Layout({ children }: LayoutProps) {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/dashboard/usuarios">
-                    <Users className="mr-2 size-4" />
-                    Usuarios
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/dashboard/redes-sociales">
-                    <Share2 className="mr-2 size-4" />
-                    Redes Sociales
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
                   <Link href="/dashboard/pedidos">
                     <ShoppingCart className="mr-2 size-4" />
                     Pedidos
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/dashboard/usuarios">
+                    <Users className="mr-2 size-4" />
+                    Usuarios
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>

@@ -11,12 +11,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
+import { useState } from "react"
 
 interface Props{
   product: ProductWithBasicRelations,
 }
 
 export function ProductCard({product}: Props) {
+
   return (
     <Card className="w-[300px] overflow-hidden group relative">
       <div className="relative">
@@ -34,7 +36,7 @@ export function ProductCard({product}: Props) {
         </div>
         {5 <= 10 && (
           <Badge variant="destructive" className="absolute top-2 right-2">
-            Stock: {5}
+            Stock: {product.stock}
           </Badge>
         )}
       </div>

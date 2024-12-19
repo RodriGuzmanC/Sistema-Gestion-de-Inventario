@@ -25,3 +25,14 @@ export const executeAsyncFunction = async (
     toast.error(error instanceof Error ? error.message : 'Ha ocurrido un error');
   }
 };
+
+
+
+// Carga el stock total haciendo un conteo del stock de las variaciones de un producto
+export function cargarStockTotal(product: ProductWithBasicRelations) {
+  let stockTotal = 0;
+  product.variaciones.map((variacion) => {
+      stockTotal = stockTotal + variacion.stock
+  })
+  return stockTotal
+}

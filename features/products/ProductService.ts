@@ -1,4 +1,5 @@
 import ProductRepository from "@/data/respositories/ProductRepository";
+import { cargarStockTotal } from "@/utils/utils";
 import { z } from "zod";
 
 
@@ -51,7 +52,13 @@ export default new class ProductService {
     // Obtener todos los productos
     async getAll(): Promise<ProductWithBasicRelations[]> {
         try {
-            return await ProductRepository.getProducts(); // Llama al repositorio para obtener todos los productos
+            const products = await ProductRepository.getProducts(); // Llama al repositorio para obtener todos los productos
+            // Cargar el stock total del producto teniendo en cuenta sus variaciones
+            products.map((product)=>{
+                const stockTotal = cargarStockTotal(product)
+                product.stock = stockTotal
+            })
+            return products
         } catch (error: any) {
             console.error('Error in ProductService:', error.message);
             throw new Error('No se obtuvieron los productos, intenta más tarde.');
@@ -65,7 +72,12 @@ export default new class ProductService {
             idValidateSchema.parse({ id });
 
             // Llama al repositorio para obtener un producto por su ID
-            return await ProductRepository.getProductWithRelations(id);
+            const product = await ProductRepository.getProductWithRelations(id);
+            // Cargar el stock total del producto teniendo en cuenta sus variaciones
+            const stockTotal = cargarStockTotal(product)
+            product.stock = stockTotal
+
+            return product
         } catch (error: any) {
             console.error('Error in ProductService:', error.message);
             if (error instanceof z.ZodError) {
@@ -75,7 +87,7 @@ export default new class ProductService {
         }
     }
 
-    
+
 
     // Crear un nuevo producto
     async create(product: Partial<Product>): Promise<Product> {

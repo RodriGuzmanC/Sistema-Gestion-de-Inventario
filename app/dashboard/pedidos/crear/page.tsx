@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/popover"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
+import OrderService from "@/features/orders/OrderService"
+import { Calendar } from "@/components/ui/calendar"
 
 const formSchema = z.object({
     status: z.enum(["pendiente", "en-proceso", "entregado", "cancelado"], {
@@ -73,6 +75,14 @@ export default function CreateOrder() {
                 </pre>
             ),
         })*/
+       /*const pedidoACrear: Partial<Order> = {
+        estado_pedido_id: values.status,
+        fecha_pedido: values.orderDate,
+        fecha_entrega: values.deliveryDate,
+        metodo_entrega_id: values.deliveryMethod,
+        tipo_pedido: values.orderType
+       } 
+        const pedidoCreado = await OrderService.create(pedidoACrear)*/
     }
 
     return (
@@ -179,7 +189,7 @@ export default function CreateOrder() {
                                                     </FormControl>
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-auto p-0" align="start">
-                                                    {/*<Calendar
+                                                    {<Calendar
                                                         mode="single"
                                                         selected={field.value}
                                                         onSelect={field.onChange}
@@ -187,7 +197,7 @@ export default function CreateOrder() {
                                                             date < new Date() || date < new Date("1900-01-01")
                                                         }
                                                         initialFocus
-                                                    />*/}
+                                                    />}
                                                 </PopoverContent>
                                             </Popover>
                                             <FormMessage />
@@ -221,7 +231,7 @@ export default function CreateOrder() {
                                                     </FormControl>
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-auto p-0" align="start">
-                                                    {/*<Calendar
+                                                    <Calendar
                                                         mode="single"
                                                         selected={field.value}
                                                         onSelect={field.onChange}
@@ -229,7 +239,7 @@ export default function CreateOrder() {
                                                             date < new Date() || date < new Date("1900-01-01")
                                                         }
                                                         initialFocus
-                                                    />*/}
+                                                    />
                                                 </PopoverContent>
                                             </Popover>
                                             <FormMessage />

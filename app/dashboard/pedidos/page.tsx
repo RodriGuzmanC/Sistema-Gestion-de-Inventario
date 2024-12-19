@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/tooltip"
 import React, { useEffect, useState } from 'react'
 import OrderService from '@/features/orders/OrderService'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface Order {
   id: number
@@ -65,7 +67,14 @@ export default function OrdersList() {
     }, [])
   return (
     <div className="container mx-auto py-8">
+      <div>
       <h1 className="text-3xl font-bold mb-6">Pedidos</h1>
+      <Button variant={'default'}>
+        <Link href={'pedidos/crear'}>
+          Crear +
+        </Link>
+      </Button>
+      </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {ordenes.map((order) => (
           <Card key={order.id} className="relative">

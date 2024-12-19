@@ -103,7 +103,9 @@ export function CreateProductForm() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Crear producto</h1>
+  <img src="https://drive.google.com/uc?export=view&id=1m65IV4tjl-N6BOnELlrAYmmKReZJsMO0" alt="Imagen desde Google Drive" height="100" width="100" />
+
+<h1 className="text-2xl font-bold mb-6">Crear producto</h1>
         <form action={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <div>
