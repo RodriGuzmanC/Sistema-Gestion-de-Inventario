@@ -8,10 +8,10 @@ interface ProductDetailProps {
 export function ProductDetailCard({ product }: ProductDetailProps) {
   return (
     <Card className="mb-8">
-      <CardContent className="flex gap-6 p-6">
+      <CardContent className="flex flex-col md:flex-row gap-6 p-6">
         <div className="relative h-32 w-32 flex-shrink-0 overflow-hidden rounded-md border bg-gray-50">
           <img
-            src={product.url_imagen || "/placeholder.svg"}
+            src={product.url_imagen}
             alt={product.nombre_producto}
             className="object-cover"
             sizes="(max-width: 128px) 100vw, 128px"

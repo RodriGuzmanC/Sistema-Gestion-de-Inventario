@@ -15,3 +15,9 @@ interface OrderWithBasicRelations extends Order {
   estados_pedidos: OrderStatus
   metodos_entregas: DeliveryMethod
 }
+
+interface OrderWithFullRelations extends Order {
+  estados_pedidos: OrderStatus
+  metodos_entregas: DeliveryMethod
+  detalles_pedidos: OrderDetailWithFullRelations[]
+}

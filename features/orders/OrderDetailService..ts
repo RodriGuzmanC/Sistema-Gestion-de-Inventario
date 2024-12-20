@@ -76,7 +76,7 @@ export default new class OrderDetailService {
     async create(orderDetail: Partial<OrderDetail>): Promise<OrderDetail> {
         try {
             // Validar los datos de entrada con el esquema de creación
-            createSchema.parse({ ...orderDetail });
+            //createSchema.parse({ ...orderDetail });
 
             // Llamamos al repositorio para crear el nuevo detalle de la orden
             const res = await OrderDetailRepository.createOrderDetail(orderDetail);

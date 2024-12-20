@@ -57,13 +57,13 @@ export default new class OrderService {
     }
 
     // Obtener una orden específica por su ID
-    async getOne(id: number): Promise<Order | null> {
+    async getOne(id: number): Promise<OrderWithFullRelations | null> {
         try {
             // Validar el ID de entrada
             idValidateSchema.parse({ id });
 
             // Llamamos al repositorio para obtener la orden por su ID
-            return await OrderRepository.getOrder(id);
+            return await OrderRepository.getOrderWithAll(id);
         } catch (error: any) {
             console.error('Error in OrderService:', error.message);
             if (error instanceof z.ZodError) {
@@ -77,7 +77,7 @@ export default new class OrderService {
     async create(order: Partial<Order>): Promise<Order> {
         try {
             // Validar los datos de entrada
-            createSchema.parse({ ...order });
+            //createSchema.parse({ ...order });
 
             // Llamamos al repositorio para crear la nueva orden
             const res = await OrderRepository.createOrder(order);

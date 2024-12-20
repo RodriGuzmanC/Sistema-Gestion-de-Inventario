@@ -12,6 +12,9 @@ import React, { useEffect, useState } from 'react'
 import OrderService from '@/features/orders/OrderService'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import OrderFilter from '@/app/components/order/FilterOrders'
+import OrderStatusService from '@/features/orders/OrderStatusService'
+import DeliveryService from '@/features/delivery/DeliveryService'
 
 interface Order {
   id: number
@@ -58,25 +61,32 @@ const deliveryMethodMap = {
 
 export default function OrdersList() {
     const [ordenes, setOrdenes] = useState<OrderWithBasicRelations[]>([])
+    const [filteredOrders, setFilteredOrders] = useState<OrderWithBasicRelations[]>([])
+    const [orderStatuses, setOrderStatuses] = useState<OrderStatus[]>([])
+    const [deliveryMethods, setDeliveryMethods] = useState<DeliveryMethod[]>([])
+
     useEffect(()=>{
         async function cargar(){
             const ordenes = await OrderService.getAll()
             setOrdenes(ordenes)
+            setFilteredOrders(ordenes)
+        }
+        async function cargarEstadosyMetodos(){
+          const orderStatuses = await OrderStatusService.getAll()
+          setOrderStatuses(orderStatuses)
+          const deliveryMethods = await DeliveryService.getAll()
+          setDeliveryMethods(deliveryMethods)
         }
         cargar()
+        cargarEstadosyMetodos()
     }, [])
   return (
     <div className="container mx-auto py-8">
-      <div>
       <h1 className="text-3xl font-bold mb-6">Pedidos</h1>
-      <Button variant={'default'}>
-        <Link href={'pedidos/crear'}>
-          Crear +
-        </Link>
-      </Button>
-      </div>
+      <OrderFilter orders={ordenes} setOrders={setFilteredOrders} deliveryMethods={deliveryMethods} orderStatuses={orderStatuses} ></OrderFilter>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {ordenes.map((order) => (
+        {/* Listado */}
+        {filteredOrders.map((order) => (
           <Card key={order.id} className="relative">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">

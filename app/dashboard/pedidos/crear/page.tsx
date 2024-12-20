@@ -1,260 +1,196 @@
 'use client'
 
-import { useState } from "react"
-import { CalendarIcon } from 'lucide-react'
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { CalendarIcon, ChevronDown } from 'lucide-react'
+import { format } from 'date-fns'
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/select'
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from "@/components/ui/popover"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast } from "sonner"
-import OrderService from "@/features/orders/OrderService"
-import { Calendar } from "@/components/ui/calendar"
+} from '@/components/ui/popover'
+import DeliveryService from '@/features/delivery/DeliveryService'
+import OrderStatusService from '@/features/orders/OrderStatusService'
+import OrderService from '@/features/orders/OrderService'
+import { toast } from 'sonner'
 
-const formSchema = z.object({
-    status: z.enum(["pendiente", "en-proceso", "entregado", "cancelado"], {
-        required_error: "Por favor seleccione un estado",
-    }),
-    deliveryMethod: z.enum(["delivery", "pickup"], {
-        required_error: "Por favor seleccione un método de entrega",
-    }),
-    orderType: z.enum(["mayorista", "minorista"], {
-        required_error: "Por favor seleccione un tipo de pedido",
-    }),
-    orderDate: z.date({
-        required_error: "Por favor seleccione una fecha de pedido",
-    }),
-    deliveryDate: z.date({
-        required_error: "Por favor seleccione una fecha de entrega",
-    }),
-}).refine((data) => data.deliveryDate >= data.orderDate, {
-    message: "La fecha de entrega debe ser posterior a la fecha de pedido",
-    path: ["deliveryDate"],
-})
+export interface OrderFormData {
+    orderStatusId: number;
+    deliveryMethodId: number;
+    orderType: number;
+    orderDate: Date;
+    deliveryDate: Date;
+}
+
 
 export default function CreateOrder() {
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            status: "pendiente",
-            deliveryMethod: "delivery",
-            orderType: "mayorista",
-        },
-    })
+    const router = useRouter()
+    const [orderDate, setOrderDate] = useState<Date>()
+    const [deliveryDate, setDeliveryDate] = useState<Date>()
+    const [orderStatusId, setOrderStatusId] = useState<string>()
+    const [deliveryMethodId, setDeliveryMethodId] = useState<string>()
+    const [orderType, setOrderType] = useState<string>()
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        /*toast({
-            title: "Pedido creado",
-            description: (
-                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                    <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-                </pre>
-            ),
-        })*/
-       /*const pedidoACrear: Partial<Order> = {
-        estado_pedido_id: values.status,
-        fecha_pedido: values.orderDate,
-        fecha_entrega: values.deliveryDate,
-        metodo_entrega_id: values.deliveryMethod,
-        tipo_pedido: values.orderType
-       } 
-        const pedidoCreado = await OrderService.create(pedidoACrear)*/
+    const handleSubmit = async () => {
+        try {
+            if (!orderDate || !deliveryDate || !orderStatusId || !deliveryMethodId || !orderType) {
+                return
+            }
+
+            const formData: Partial<Order> = {
+                estado_pedido_id: parseInt(orderStatusId),
+                metodo_entrega_id: parseInt(deliveryMethodId),
+                tipo_pedido: orderType === "1",
+                fecha_pedido: orderDate.toDateString(),
+                fecha_entrega: deliveryDate.toDateString(),
+            }
+
+            // Here you can call your controller with formData
+            console.log('Form Data:', formData)
+            const nuevoPedido = await OrderService.create(formData)
+            console.log("Nuevo pedido")
+            console.log(nuevoPedido)
+            toast("Se ha creado con exito")
+            // Navigate to next page
+            router.push(`crear/${nuevoPedido.id}/detalle/crear`)
+        } catch (error) {
+            console.error(error)
+        }
     }
 
+    const [deliveryMethods, setDeliveryMethods] = useState<DeliveryMethod[]>([])
+    const [orderStatuses, setOrderStatuses] = useState<OrderStatus[]>([])
+    useEffect(() => {
+        async function cargar() {
+            const deliveryMethods = await DeliveryService.getAll()
+            setDeliveryMethods(deliveryMethods)
+            const orderStatuses = await OrderStatusService.getAll()
+            setOrderStatuses(orderStatuses)
+        }
+        cargar()
+    }, [])
     return (
-        <div className="container max-w-2xl mx-auto py-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-2xl">Crear Pedido</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                            <FormField
-                                control={form.control}
-                                name="status"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Estado del pedido</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccione un estado" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="pendiente">Pendiente</SelectItem>
-                                                <SelectItem value="en-proceso">En proceso</SelectItem>
-                                                <SelectItem value="entregado">Entregado</SelectItem>
-                                                <SelectItem value="cancelado">Cancelado</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+        <div className="max-w-md space-y-6 p-6">
+            <h1 className="text-2xl font-bold">Crear Pedido</h1>
 
-                            <FormField
-                                control={form.control}
-                                name="deliveryMethod"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Método de entrega</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccione método de entrega" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="delivery">Delivery</SelectItem>
-                                                <SelectItem value="pickup">Recoger en tienda</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <label className="text-sm font-medium">Estado del pedido</label>
+                    <Select onValueChange={setOrderStatusId}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {orderStatuses.map((status) => (
+                                <SelectItem key={status.id} value={status.id.toString()}>
+                                    {status.nombre}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
 
-                            <FormField
-                                control={form.control}
-                                name="orderType"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Tipo de pedido</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccione tipo de pedido" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="mayorista">Mayorista</SelectItem>
-                                                <SelectItem value="minorista">Minorista</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                <div className="space-y-2">
+                    <label className="text-sm font-medium">Método de entrega</label>
+                    <Select onValueChange={setDeliveryMethodId}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar método" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {deliveryMethods.map((method) => (
+                                <SelectItem key={method.id} value={method.id.toString()}>
+                                    {method.nombre}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
 
-                            <div className="grid gap-6 md:grid-cols-2">
-                                <FormField
-                                    control={form.control}
-                                    name="orderDate"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                            <FormLabel>Fecha de pedido</FormLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <FormControl>
-                                                        <Button
-                                                            variant={"outline"}
-                                                            className={cn(
-                                                                "w-full pl-3 text-left font-normal",
-                                                                !field.value && "text-muted-foreground"
-                                                            )}
-                                                        >
-                                                            {field.value ? (
-                                                                format(field.value, "PPP", { locale: es })
-                                                            ) : (
-                                                                <span>Seleccione una fecha</span>
-                                                            )}
-                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                        </Button>
-                                                    </FormControl>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                    {<Calendar
-                                                        mode="single"
-                                                        selected={field.value}
-                                                        onSelect={field.onChange}
-                                                        disabled={(date:any ) =>
-                                                            date < new Date() || date < new Date("1900-01-01")
-                                                        }
-                                                        initialFocus
-                                                    />}
-                                                </PopoverContent>
-                                            </Popover>
-                                            <FormMessage />
-                                        </FormItem>
+                <div className="space-y-2">
+                    <label className="text-sm font-medium">Tipo de pedido</label>
+                    <Select onValueChange={setOrderType}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="1">Mayorista</SelectItem>
+                            <SelectItem value="0">Minorista</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Fecha de pedido</label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className={cn(
+                                        'w-full justify-start text-left font-normal',
+                                        !orderDate && 'text-muted-foreground'
                                     )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {orderDate ? format(orderDate, 'PP') : 'Seleccionar fecha'}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={orderDate}
+                                    onSelect={setOrderDate}
+                                    initialFocus
                                 />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
 
-                                <FormField
-                                    control={form.control}
-                                    name="deliveryDate"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                            <FormLabel>Fecha de entrega</FormLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <FormControl>
-                                                        <Button
-                                                            variant={"outline"}
-                                                            className={cn(
-                                                                "w-full pl-3 text-left font-normal",
-                                                                !field.value && "text-muted-foreground"
-                                                            )}
-                                                        >
-                                                            {field.value ? (
-                                                                format(field.value, "PPP", { locale: es })
-                                                            ) : (
-                                                                <span>Seleccione una fecha</span>
-                                                            )}
-                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                        </Button>
-                                                    </FormControl>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={field.value}
-                                                        onSelect={field.onChange}
-                                                        disabled={(date: any) =>
-                                                            date < new Date() || date < new Date("1900-01-01")
-                                                        }
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                            <FormMessage />
-                                        </FormItem>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Fecha de entrega</label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className={cn(
+                                        'w-full justify-start text-left font-normal',
+                                        !deliveryDate && 'text-muted-foreground'
                                     )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {deliveryDate ? format(deliveryDate, 'PP') : 'Seleccionar fecha'}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={deliveryDate}
+                                    onSelect={setDeliveryDate}
+                                    initialFocus
                                 />
-                            </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                </div>
 
-                            <Button type="submit" className="w-full md:w-auto">
-                                Crear Pedido
-                            </Button>
-                        </form>
-                    </Form>
-                </CardContent>
-            </Card>
+                <Button
+                    className="w-full"
+                    onClick={handleSubmit}
+                >
+                    Siguiente
+                </Button>
+            </div>
         </div>
     )
 }

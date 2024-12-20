@@ -7,4 +7,7 @@ interface OrderDetail {
     precio_rebajado?: number;
   }
 
+  interface OrderDetailWithFullRelations extends OrderDetail{
+    variaciones: VariationWithFullRelations
+  }
 

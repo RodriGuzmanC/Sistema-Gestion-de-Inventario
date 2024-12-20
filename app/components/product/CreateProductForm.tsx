@@ -1,5 +1,5 @@
 'use client'
-
+import { CldImage } from 'next-cloudinary';
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -14,6 +14,7 @@ import ProductService from '@/features/products/ProductService'
 import { executeAsyncFunction } from '@/utils/utils'
 import CategoryService from '@/features/categories/CategoryService'
 import CategoryProductService from '@/features/products/CategoryProductService'
+import { toast } from 'sonner';
 
 
 export function CreateProductForm() {
@@ -23,15 +24,34 @@ export function CreateProductForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
 
-  const handleMainImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setMainImage(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setMainImage(reader.result as string)
     }
+    reader.readAsDataURL(file)
+
+    // Subir archivo a Cloudinary
+    /*const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? ''); // Reemplaza con tu upload_preset
+    formData.append('cloud_name', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? ''); // Reemplaza con tu cloud_name
+
+    try {
+
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      console.log('URL de la imagen subida:', data.secure_url); // URL de la imagen en Cloudinary
+      alert('Imagen subida con éxito: ' + data.secure_url);
+    } catch (error) {
+      console.error('Error al subir la imagen:', error);
+    }*/
   }
 
   const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,7 +69,7 @@ export function CreateProductForm() {
 
   async function handleSubmit(formData: FormData) {
     try {
-      
+
       const name = formData.get('name') as string | null || ''
       const description = formData.get('description') as string | null || ''
       const unitPrice = parseFloat(formData.get('unitPrice') as string | null || '0')
@@ -81,9 +101,10 @@ export function CreateProductForm() {
       };
 
       executeAsyncFunction(sampleAsyncFunction);*/
-
+      toast("Se ha creado exitosamente")
+      router.push(`${productoNuevo.id}/variaciones/crear`)
       setIsSubmitting(true)
-      
+
       //router.push(`/dashboard/productos/${result.id}/crear/variaciones`)
     } catch (error) {
       console.error('Error creating product:', error)
@@ -92,8 +113,8 @@ export function CreateProductForm() {
     }
   }
 
-  useEffect(()=>{
-    async function cargarCategorias(){
+  useEffect(() => {
+    async function cargarCategorias() {
       const data = await CategoryService.getAll()
       setCategories(data)
     }
@@ -103,10 +124,9 @@ export function CreateProductForm() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-  <img src="https://drive.google.com/uc?export=view&id=1m65IV4tjl-N6BOnELlrAYmmKReZJsMO0" alt="Imagen desde Google Drive" height="100" width="100" />
-
-<h1 className="text-2xl font-bold mb-6">Crear producto</h1>
-        <form action={handleSubmit} className="space-y-6">
+      
+      <h1 className="text-2xl font-bold mb-6">Crear producto</h1>
+      <form action={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <div>
             <Label htmlFor="name">Nombre del producto</Label>
@@ -121,22 +141,22 @@ export function CreateProductForm() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="unitPrice">Precio unitario</Label>
-              <Input 
-                id="unitPrice" 
-                name="unitPrice" 
-                type="number" 
+              <Input
+                id="unitPrice"
+                name="unitPrice"
+                type="number"
                 step="0.01"
-                required 
+                required
               />
             </div>
             <div>
               <Label htmlFor="wholesalePrice">Precio mayorista</Label>
-              <Input 
-                id="wholesalePrice" 
-                name="wholesalePrice" 
-                type="number" 
+              <Input
+                id="wholesalePrice"
+                name="wholesalePrice"
+                type="number"
                 step="0.01"
-                required 
+                required
               />
             </div>
           </div>
@@ -144,6 +164,16 @@ export function CreateProductForm() {
           <div>
             <Label>Sube una imagen</Label>
             <div className="mt-2">
+              {/*<CldImage
+                alt='asd'
+                src="cld-sample-5"
+                width="500" 
+                height="500"
+                crop={{
+                  type: 'auto',
+                  source: true
+                }}
+              />*/}
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                 <input
                   type="file"
@@ -234,8 +264,8 @@ export function CreateProductForm() {
           </div>
         </div>
 
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="w-full"
           disabled={isSubmitting}
         >

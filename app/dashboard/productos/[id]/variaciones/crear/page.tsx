@@ -18,6 +18,8 @@ import AttributeService from '@/features/attributes/AttributeService'
 import VariationService from '@/features/variations/VariationService'
 import VariationAttributeService from '@/features/variations/VariationAttributeService'
 import ProductService from '@/features/products/ProductService'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 
 
@@ -39,13 +41,14 @@ type Params = {
   id: string; // Nombre del parámetro dinámico en el archivo
 };
 
-export default function CreateVariation({ 
-  params 
-}: { 
+export default function CreateVariation({
+  params
+}: {
   params: Params
 }) {
   const [typesWithVariations, setTypesWithVariations] = useState<AttributeTypesWithAttributes[]>([])
   const [product, setProduct] = useState<Product | null>()
+  const router = useRouter()
   //  Variaciones
   const [variations, setVariations] = useState<ProductVariation[]>([
     {
@@ -56,7 +59,7 @@ export default function CreateVariation({
       atributos: []
     }
   ])
-  
+
   // Tipos de atributo
   /*const attributeTypes: AttributeTypesWithAttributes[] = [
     {
@@ -92,7 +95,7 @@ export default function CreateVariation({
       ],
     },
   ];*/
-  
+
 
   const handleAddAttribute = (variationId: number) => {
     setVariations(variations.map(variation => {
@@ -172,7 +175,7 @@ export default function CreateVariation({
 
   const handleSubmit = async () => {
     console.log(variations)
-    variations.map(async (variation)=>{
+    variations.map(async (variation) => {
       // Insertamos cada variacion en bd
       const variacion: Partial<Variation> = {
         producto_id: parseInt(params.id),
@@ -184,7 +187,7 @@ export default function CreateVariation({
       console.log("Nueva variacion")
       console.log(nuevaVariacion)
       // Asociamos sus atributos
-      variation.atributos.map(async (atributo)=>{
+      variation.atributos.map(async (atributo) => {
         const atributoDeVariacion: Partial<VariationAttribute> = {
           variacion_id: nuevaVariacion.id,
           atributo_id: atributo.valor_id
@@ -193,15 +196,18 @@ export default function CreateVariation({
         console.log("Nuevo atributo de variacion")
         console.log(nuevoAtributoDeVariacion)
       })
+      // Todo exito
+      toast("Se han creado las variaciones exitosamente")
+      router.push("/dashboard/productos")
     })
   }
 
-  useEffect(()=>{
-    async function cargarTiposDeAtributosConAtributos(){
+  useEffect(() => {
+    async function cargarTiposDeAtributosConAtributos() {
       const tiposConAtributos = await AttributeTypesService.getAllWithAttributes()
       setTypesWithVariations(tiposConAtributos)
     }
-    async function cargarProducto(){
+    async function cargarProducto() {
       const producto = await ProductService.getOne(parseInt(params.id))
       setProduct(producto)
     }
@@ -216,17 +222,23 @@ export default function CreateVariation({
       </p>
 
       {/* Product Card */}
-      <Card className="w-[350px] h-[200px]">
-        <CardHeader className="space-y-2 flex flex-row">
-          <div className="aspect-square relative bg-muted rounded-md overflow-hidden">
-            <img
-              src={product?.url_imagen ?? ''}
-              className="object-cover"
-            />
-          </div>
-          <div className="font-medium">{product?.nombre_producto}</div>
-          <p>{product?.descripcion}</p>
-        </CardHeader>
+      <Card className="overflow-hidden w-[350px] h-[150px] flex items-center space-x-4 p-4">
+        {/* Image */}
+        <div className="aspect-square w-24 h-24 relative bg-muted rounded-md overflow-hidden flex-shrink-0">
+          <img
+            src={product?.url_imagen ?? ''}
+            alt={product?.nombre_producto ?? 'Product Image'}
+            className="object-cover w-full h-full"
+          ></img>
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col justify-start flex-1">
+          <h3 className="font-medium text-lg">{product?.nombre_producto}</h3>
+          <p className="text-muted text-sm truncate text-black">
+            {product?.descripcion}
+          </p>
+        </div>
       </Card>
 
       {/* Variations */}
@@ -296,7 +308,7 @@ export default function CreateVariation({
                       <label className="text-sm font-medium">Tipo</label>
                       <Select
                         value={atributo.tipo_id.toString()}
-                        onValueChange={(value) => 
+                        onValueChange={(value) =>
                           handleAttributeChange(variation.id, index, 'tipo_id', parseInt(value))
                         }
                       >
@@ -317,7 +329,7 @@ export default function CreateVariation({
                       <label className="text-sm font-medium">Valor</label>
                       <Select
                         value={atributo.valor_id.toString()}
-                        onValueChange={(value) => 
+                        onValueChange={(value) =>
                           handleAttributeChange(variation.id, index, 'valor_id', parseInt(value))
                         }
                       >

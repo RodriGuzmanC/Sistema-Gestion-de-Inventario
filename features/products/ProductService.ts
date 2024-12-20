@@ -57,6 +57,10 @@ export default new class ProductService {
             products.map((product)=>{
                 const stockTotal = cargarStockTotal(product)
                 product.stock = stockTotal
+                // Coloca el placeholder en caso de null
+                if (product.url_imagen == null) {
+                    product.url_imagen = '/images/product-placeholder.jpg'
+                }
             })
             return products
         } catch (error: any) {
@@ -76,6 +80,10 @@ export default new class ProductService {
             // Cargar el stock total del producto teniendo en cuenta sus variaciones
             const stockTotal = cargarStockTotal(product)
             product.stock = stockTotal
+            // Coloca el placeholder en caso de null
+            if (product.url_imagen == null) {
+                product.url_imagen = '/images/product-placeholder.jpg'
+            }
 
             return product
         } catch (error: any) {

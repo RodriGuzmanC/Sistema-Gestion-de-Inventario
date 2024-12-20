@@ -10,6 +10,9 @@ import ProductService from '@/features/products/ProductService'
 import CategoryService from '@/features/categories/CategoryService'
 import AttributeTypesService from '@/features/attributes/AttributeTypesService'
 import VariationAttributeService from '@/features/variations/VariationAttributeService'
+import OrderService from '@/features/orders/OrderService'
+import OrderDetailService from '@/features/orders/OrderDetailService.'
+import { calcularStockTotal, calcularSubTotal } from '@/utils/utils'
 
 interface ProductVariation {
     id: string
@@ -31,10 +34,13 @@ interface PrepareOrderDetail extends OrderDetail {
     id: number,
     nombre_producto: string,
     variacion: VariationWithRelations,
-
 }
 
-export default function OrderDetail() {
+type Param = {
+    id: string
+}
+
+export default function OrderDetail({params} : {params: Param}) {
     const [selectedProduct, setSelectedProduct] = useState<string>('')
     const [selectedSize, setSelectedSize] = useState<string>('')
     const [selectedColor, setSelectedColor] = useState<string>('')
@@ -69,6 +75,7 @@ export default function OrderDetail() {
             ...orderItems,
             {
                 id: orderItems.length + 1,
+                pedido_id: parseInt(params.id),
                 cantidad: 1,
                 precio: variation.precio_unitario,
                 precio_rebajado: 0,
@@ -98,8 +105,8 @@ export default function OrderDetail() {
             orderItems.map((item) =>
                 item.id === id
                     ? isDiscounted
-                        ? { ...item, discountedPrice: price }
-                        : { ...item, price }
+                        ? { ...item, precio_rebajado: price }
+                        : { ...item, precio: price }
                     : item
             )
         )
@@ -108,6 +115,7 @@ export default function OrderDetail() {
     const [productos, setProductos] = useState<ProductWithBasicRelations[]>([])
     const [producto, setProducto] = useState<ProductWithFullRelations | null>(null)
     const [atributos, setAtributos] = useState<AttributeTypesWithAttributes[]>([])
+    const [ordenActual, setOrdenActual] = useState<Order>()
     // Estado para los valores seleccionados de cada filtro
     const [selectedValues, setSelectedValues] = useState<Record<string, string>>({});
 
@@ -118,6 +126,25 @@ export default function OrderDetail() {
             [tipoAtributoId]: value, // Actualiza el valor del filtro correspondiente
         }));
     };
+
+    const handleSubmit = async () => {
+        console.log("Orden")
+        console.log(orderItems)
+        orderItems.map(async (order)=>{
+            const ordenPreparada: Partial<OrderDetail> = {
+                pedido_id: order.pedido_id,
+                cantidad: order.cantidad,
+                precio: order.precio,
+                precio_rebajado: order.precio_rebajado,
+                variacion_id: order.variacion?.id
+            }
+            const detallePedido = await OrderDetailService.create(ordenPreparada)
+            console.log("Ordenes agregadas")
+            console.log(detallePedido)
+        })
+    }
+
+    
 
     useEffect(() => {
         if (!selectedProduct) return;
@@ -131,6 +158,11 @@ export default function OrderDetail() {
 
 
     useEffect(() => {
+        async function cargarPedidoPerteneciente(){
+            const pedidoActual = await OrderService.getOne(parseInt(params.id))
+            if (!pedidoActual) return (<div>Error</div>)
+            setOrdenActual(pedidoActual)
+        }
         async function cargarProductos() {
             const productos = await ProductService.getAll()
             setProductos(productos)
@@ -141,7 +173,7 @@ export default function OrderDetail() {
         }
         cargarCategorias()
         cargarProductos()
-
+        cargarPedidoPerteneciente()
     }, [])
 
     return (
@@ -151,10 +183,10 @@ export default function OrderDetail() {
             <div className="grid lg:grid-cols-2 gap-6">
                 {/* Left Column - Product Selection and Filtering */}
                 <div className="space-y-6">
-                    <div className="space-y-4">
-                        <h2 className="text-lg font-semibold">Producto</h2>
+                    <div className="space-y-2">
+                        <h2 className="text-lg font-semibold">Elige el producto</h2>
                         <p className="text-sm text-muted-foreground">
-                            Elige el producto que deseas añadir al pedido
+                            Aqui elige el producto a buscar
                         </p>
                         <Select value={selectedProduct} onValueChange={setSelectedProduct}>
                             <SelectTrigger>
@@ -178,8 +210,9 @@ export default function OrderDetail() {
                         </Select>
                     </div>
 
-                    <div className="space-y-4">
-                        <h2 className="text-lg font-semibold">Filtrar por atributos</h2>
+                    <div className="space-y-2">
+                        <h2 className="text-lg font-semibold">Elige el color o talla del producto</h2>
+                        <p className="text-sm text-muted-foreground">Elige el color o talla que estas buscando</p>
                         <form className="grid sm:grid-cols-2 gap-4">
                             {atributos.map((tipoAtributo) => (
                                 <Select
@@ -198,31 +231,7 @@ export default function OrderDetail() {
                                     </SelectContent>
                                 </Select>
                             ))}
-                            {/*<Select value={selectedSize} onValueChange={setSelectedSize}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Talla" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {sizes.map((size) => (
-                                        <SelectItem key={size} value={size}>
-                                            {size}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                            <Select value={selectedColor} onValueChange={setSelectedColor}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Color" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {colors.map((color) => (
-                                        <SelectItem key={color} value={color}>
-                                            {color}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>*/}
+                            
                         </form>
                         <Button onClick={handleFilter} className="w-full sm:w-auto">
                             Filtrar
@@ -230,8 +239,9 @@ export default function OrderDetail() {
                     </div>
 
                     {filteredVariations.length > 0 && (
-                        <div className="space-y-4">
+                        <div className="space-y-2">
                             <h2 className="text-lg font-semibold">Resultados de búsqueda</h2>
+                            <p className="text-sm text-muted-foreground">Aqui apareceran las variaciones que existen</p>
                             <div className="grid gap-4">
                                 {filteredVariations.map((variation) => (
                                     <Card key={variation.id}>
@@ -270,12 +280,12 @@ export default function OrderDetail() {
 
                 {/* Right Column - Order Details */}
                 <div className="space-y-6">
-                    <div>
+                    <div className='flex flex-col space-y-2 max-h-[900px] min-h-[500px] p-3 rounded-md border-2 border-opacity-80'>
                         <h2 className="text-lg font-semibold mb-4">Detalles del pedido</h2>
                         <p className="text-sm text-muted-foreground mb-6">
                             Puedes cambiar el precio en el detalle del pedido, esto no afectará el precio del producto.
                         </p>
-                        <div className="grid gap-4">
+                        <div className="overflow-auto flex-1 grid gap-4">
                             {orderItems.map((item) => (
                                 <Card key={item.id}>
                                     <CardContent className="p-4">
@@ -318,15 +328,15 @@ export default function OrderDetail() {
                                                 <div className="space-y-2">
                                                     <label className="text-sm font-medium">Precio</label>
                                                     <div className="flex items-center gap-2">
-                                                        <span>S/</span>
-                                                        <Input
+                                                        <span>S/{item.precio}</span>
+                                                        {/*<Input
                                                             type="number"
                                                             value={item.precio}
                                                             onChange={(e) =>
                                                                 updatePrice(item.id ?? 0, Number(e.target.value), false)
                                                             }
                                                             className="w-20"
-                                                        />
+                                                        />*/}
                                                     </div>
                                                 </div>
 
@@ -352,6 +362,17 @@ export default function OrderDetail() {
                                 </Card>
                             ))}
                         </div>
+                            <div>
+                                <div>
+                                    Cantidad total: {calcularStockTotal(orderItems)}
+                                </div>
+                                <div>
+                                    Subtotal total: S/{calcularSubTotal(orderItems)}
+                                </div>
+                            <Button onClick={handleSubmit}>
+                                Crear pedido
+                            </Button>
+                            </div>
                     </div>
                 </div>
             </div>

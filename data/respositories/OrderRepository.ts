@@ -23,10 +23,10 @@ export default new class OrderRepository {
     }
 
     // Obtener un pedido específico por su ID
-    async getOrder(id: number): Promise<Order | null> {
+    async getOrderWithAll(id: number): Promise<OrderWithFullRelations | null> {
         const { data, error } = await this.client
             .from('pedidos')
-            .select('*')
+            .select('*, detalles_pedidos(*, variaciones(*, productos(*), variaciones_atributos(*, atributos(*, tipos_atributos(*))))), estados_pedidos(*), metodos_entregas(*)')
             .eq('id', id)
             .single();
 
