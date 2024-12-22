@@ -24,6 +24,8 @@ import DeliveryService from '@/features/delivery/DeliveryService'
 import OrderStatusService from '@/features/orders/OrderStatusService'
 import OrderService from '@/features/orders/OrderService'
 import { toast } from 'sonner'
+import SharedFormSkeleton from '@/app/components/SharedFormSkeleton'
+import ClientService from '@/features/client/ClientService'
 
 export interface OrderFormData {
     orderStatusId: number;
@@ -40,11 +42,12 @@ export default function CreateOrder() {
     const [deliveryDate, setDeliveryDate] = useState<Date>()
     const [orderStatusId, setOrderStatusId] = useState<string>()
     const [deliveryMethodId, setDeliveryMethodId] = useState<string>()
+    const [clientId, setClientId] = useState<string>()
     const [orderType, setOrderType] = useState<string>()
 
     const handleSubmit = async () => {
         try {
-            if (!orderDate || !deliveryDate || !orderStatusId || !deliveryMethodId || !orderType) {
+            if (!orderDate || !deliveryDate || !orderStatusId || !deliveryMethodId || !orderType || !clientId) {
                 return
             }
 
@@ -54,6 +57,7 @@ export default function CreateOrder() {
                 tipo_pedido: orderType === "1",
                 fecha_pedido: orderDate.toDateString(),
                 fecha_entrega: deliveryDate.toDateString(),
+                cliente_id: parseInt(clientId)
             }
 
             // Here you can call your controller with formData
@@ -65,26 +69,54 @@ export default function CreateOrder() {
             // Navigate to next page
             router.push(`crear/${nuevoPedido.id}/detalle/crear`)
         } catch (error) {
+            toast("Ha ocurrido un error, intentalo mas tarde")
             console.error(error)
         }
     }
 
     const [deliveryMethods, setDeliveryMethods] = useState<DeliveryMethod[]>([])
     const [orderStatuses, setOrderStatuses] = useState<OrderStatus[]>([])
+    const [clients, setClients] = useState<Client[]>([])
+    const [loading, setLoading] = useState<boolean>(true)
+
     useEffect(() => {
         async function cargar() {
             const deliveryMethods = await DeliveryService.getAll()
             setDeliveryMethods(deliveryMethods)
             const orderStatuses = await OrderStatusService.getAll()
             setOrderStatuses(orderStatuses)
+            const clientes = await ClientService.getAll()
+            setClients(clientes)
+            setLoading(false)
         }
         cargar()
     }, [])
+
+    if (loading) {
+        return (<SharedFormSkeleton />);
+      }
     return (
-        <div className="max-w-md space-y-6 p-6">
+        <div className="max-w-md space-y-6">
             <h1 className="text-2xl font-bold">Crear Pedido</h1>
 
             <div className="space-y-4">
+            <div className="space-y-2">
+                    <label className="text-sm font-medium">Cliente</label>
+                    <Select onValueChange={setClientId}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {clients.map((client) => (
+                                <SelectItem key={client.id} value={client.id.toString()}>
+                                    {client.nombre}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+
                 <div className="space-y-2">
                     <label className="text-sm font-medium">Estado del pedido</label>
                     <Select onValueChange={setOrderStatusId}>

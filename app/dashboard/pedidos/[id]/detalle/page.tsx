@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import OrderService from "@/features/orders/OrderService"
-import { calcularStockTotal, calcularSubTotal } from "@/utils/utils"
+import { calcularStockTotal, calcularSubTotal, formatearFechaLarga } from "@/utils/utils"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Image from "next/image"
@@ -15,9 +15,6 @@ type Param = {
 
 export default function OrderDetail({params} : {params: Param}) {
 
-  // Fechas de prueba
-  const fechaPedido = new Date(2024, 0, 15)
-  const fechaEntrega = new Date(2024, 0, 20)
 
   const [pedidoActual, setPedidoActual] = useState<OrderWithFullRelations>()
   useEffect(()=>{
@@ -39,7 +36,7 @@ export default function OrderDetail({params} : {params: Param}) {
         return <div>Parámetro ID no encontrado</div>;
       }
   return (
-    <div className="container max-w-2xl mx-auto space-y-6">
+    <div className="container max-w-2xl mx-auto p-0 space-y-6">
       {/* Encabezado del pedido */}
       <Card>
         <CardHeader>
@@ -52,13 +49,13 @@ export default function OrderDetail({params} : {params: Param}) {
             <div>
               <p className="text-muted-foreground">Fecha de Pedido</p>
               <p className="font-medium">
-                {format(fechaPedido, "PPP", { locale: es })}
+                {formatearFechaLarga(pedidoActual.fecha_pedido)}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground">Fecha de Entrega</p>
               <p className="font-medium">
-                {format(fechaEntrega, "PPP", { locale: es })}
+                {formatearFechaLarga(pedidoActual.fecha_entrega)}
               </p>
             </div>
           </div>
@@ -97,7 +94,7 @@ export default function OrderDetail({params} : {params: Param}) {
                     <span className="font-medium">
                       S/{detalleIndividual.precio_rebajado || detalleIndividual.precio}
                     </span>
-                    {detalleIndividual.precio_rebajado && (
+                    {detalleIndividual.precio_rebajado != 0 && (
                       <span className="text-sm text-muted-foreground line-through">
                         S/{detalleIndividual.precio}
                       </span>

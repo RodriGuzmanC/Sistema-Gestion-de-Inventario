@@ -123,7 +123,7 @@ export function CreateProductForm() {
   }, [])
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto">
       
       <h1 className="text-2xl font-bold mb-6">Crear producto</h1>
       <form action={handleSubmit} className="space-y-6">
@@ -161,10 +161,10 @@ export function CreateProductForm() {
             </div>
           </div>
 
-          <div>
+          {/*<div>
             <Label>Sube una imagen</Label>
             <div className="mt-2">
-              {/*<CldImage
+              <CldImage
                 alt='asd'
                 src="cld-sample-5"
                 width="500" 
@@ -173,7 +173,7 @@ export function CreateProductForm() {
                   type: 'auto',
                   source: true
                 }}
-              />*/}
+              />
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                 <input
                   type="file"
@@ -206,9 +206,9 @@ export function CreateProductForm() {
                 </label>
               </div>
             </div>
-          </div>
+          </div>*/}
 
-          <div>
+          {/*<div>
             <Label>Subir galería de imágenes</Label>
             <div className="mt-2">
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
@@ -249,7 +249,7 @@ export function CreateProductForm() {
                 </label>
               </div>
             </div>
-          </div>
+          </div>*/}
 
           <div>
             <Label>Categorías</Label>

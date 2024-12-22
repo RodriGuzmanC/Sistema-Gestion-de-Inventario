@@ -84,7 +84,7 @@ export default new class VariationService {
     async update(id: number, updates: Partial<Variation>): Promise<Variation> {
         try {
             // Validar los datos de entrada
-            updateSchema.parse({ id, ...updates });
+            //updateSchema.parse({ id, ...updates });
 
             return await VariationRepository.updateVariation(id, updates);
         } catch (error) {

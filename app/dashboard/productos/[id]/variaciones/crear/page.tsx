@@ -174,32 +174,36 @@ export default function CreateVariation({
   }
 
   const handleSubmit = async () => {
-    console.log(variations)
-    variations.map(async (variation) => {
-      // Insertamos cada variacion en bd
-      const variacion: Partial<Variation> = {
-        producto_id: parseInt(params.id),
-        precio_unitario: parseInt(variation.precio_unitario),
-        precio_mayorista: parseInt(variation.precio_mayorista),
-        stock: parseInt(variation.stock)
-      }
-      const nuevaVariacion = await VariationService.create(variacion)
-      console.log("Nueva variacion")
-      console.log(nuevaVariacion)
-      // Asociamos sus atributos
-      variation.atributos.map(async (atributo) => {
-        const atributoDeVariacion: Partial<VariationAttribute> = {
-          variacion_id: nuevaVariacion.id,
-          atributo_id: atributo.valor_id
+    try {
+      console.log(variations)
+      variations.map(async (variation) => {
+        // Insertamos cada variacion en bd
+        const variacion: Partial<Variation> = {
+          producto_id: parseInt(params.id),
+          precio_unitario: parseInt(variation.precio_unitario),
+          precio_mayorista: parseInt(variation.precio_mayorista),
+          stock: parseInt(variation.stock)
         }
-        const nuevoAtributoDeVariacion = await VariationAttributeService.create(atributoDeVariacion)
-        console.log("Nuevo atributo de variacion")
-        console.log(nuevoAtributoDeVariacion)
+        const nuevaVariacion = await VariationService.create(variacion)
+        console.log("Nueva variacion")
+        console.log(nuevaVariacion)
+        // Asociamos sus atributos
+        variation.atributos.map(async (atributo) => {
+          const atributoDeVariacion: Partial<VariationAttribute> = {
+            variacion_id: nuevaVariacion.id,
+            atributo_id: atributo.valor_id
+          }
+          const nuevoAtributoDeVariacion = await VariationAttributeService.create(atributoDeVariacion)
+          console.log("Nuevo atributo de variacion")
+          console.log(nuevoAtributoDeVariacion)
+        })
+        // Todo exito
+        toast("Se han creado las variaciones exitosamente")
+        router.push("/dashboard/productos")
       })
-      // Todo exito
-      toast("Se han creado las variaciones exitosamente")
-      router.push("/dashboard/productos")
-    })
+    } catch (error) {
+      toast("Ha ocurrido un error")
+    }
   }
 
   useEffect(() => {
@@ -215,14 +219,14 @@ export default function CreateVariation({
     cargarTiposDeAtributosConAtributos()
   }, [])
   return (
-    <div className="max-w-3xl mx-auto p-4 space-y-6">
-      <h1 className="text-2xl font-bold">Crear variacion de producto</h1>
-      <p className="text-muted-foreground">
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-2">Crear variacion de producto</h1>
+      <p className="text-muted-foreground mb-3">
         Estas creando las variaciones para el producto:
       </p>
 
       {/* Product Card */}
-      <Card className="overflow-hidden w-[350px] h-[150px] flex items-center space-x-4 p-4">
+      <Card className="overflow-hidden max-w-[350px] h-[130px] flex items-center space-x-4 p-4 mb-3">
         {/* Image */}
         <div className="aspect-square w-24 h-24 relative bg-muted rounded-md overflow-hidden flex-shrink-0">
           <img
@@ -235,14 +239,14 @@ export default function CreateVariation({
         {/* Content */}
         <div className="flex flex-col justify-start flex-1">
           <h3 className="font-medium text-lg">{product?.nombre_producto}</h3>
-          <p className="text-muted text-sm truncate text-black">
+          <p className="text-sm line-clamp-2 text-black">
             {product?.descripcion}
           </p>
         </div>
       </Card>
 
       {/* Variations */}
-      <div className="space-y-4">
+      <div className="space-y-4 mb-3">
         {variations.map((variation) => (
           <Card key={variation.id}>
             <CardHeader className="flex flex-row items-center">
@@ -262,7 +266,7 @@ export default function CreateVariation({
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Prices and Stock */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 items-end">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Precio unitario</label>
                   <Input
@@ -367,7 +371,7 @@ export default function CreateVariation({
       {/* Add Variation Button */}
       <Button
         variant="outline"
-        className="w-full"
+        className="w-full mb-3"
         onClick={handleAddVariation}
       >
         Añadir nueva variación +

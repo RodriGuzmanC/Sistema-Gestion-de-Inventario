@@ -7,7 +7,8 @@ interface Order {
   estado_pedido_id: number;
   metodo_entrega_id: number;
   tipo_pedido: boolean;
-  fecha_creacion: string;
+  fecha_creacion?: string;
+  cliente_id: number;
 }
 
 
@@ -20,4 +21,11 @@ interface OrderWithFullRelations extends Order {
   estados_pedidos: OrderStatus
   metodos_entregas: DeliveryMethod
   detalles_pedidos: OrderDetailWithFullRelations[]
+}
+
+
+interface PrepareOrderDetail extends OrderDetail {
+  id: number,
+  nombre_producto: string,
+  variacion: VariationWithRelations,
 }

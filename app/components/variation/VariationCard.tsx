@@ -24,11 +24,11 @@ export function VariationCard({
   onEdit,
   onDelete,
 }: VariationProps) {
-  const [open, setOpen] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
 
   return (
-    <Card className="relative">
-      <CardContent className="p-6">
+    <Card className="min-h-[210px] relative flex items-end">
+      <CardContent className="p-6 w-full">
         <div className="absolute right-4 top-4">
           <DropdownMenu>
             <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
@@ -36,10 +36,6 @@ export function VariationCard({
               <span className="sr-only">Open menu</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" >
-              <DropdownMenuItem >
-                <Pencil className="mr-2 h-4 w-4" />
-                Es
-              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(variation.id.toString())}
                 className="text-destructive focus:text-destructive"
@@ -75,32 +71,7 @@ export function VariationCard({
               <span className="font-medium">{variation.stock} Unidades</span>
             </div>
             <EditVariationModal variationObj={variation}></EditVariationModal>
-            <Dialog>
-              <ContextMenu>
-                <ContextMenuTrigger>Right click</ContextMenuTrigger>
-                <ContextMenuContent>
-                  <ContextMenuItem>Open</ContextMenuItem>
-                  <ContextMenuItem>Download</ContextMenuItem>
-                  <DialogTrigger asChild>
-                    <ContextMenuItem>
-                      <span>Delete</span>
-                    </ContextMenuItem>
-                  </DialogTrigger>
-                </ContextMenuContent>
-              </ContextMenu>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Are you absolutely sure?</DialogTitle>
-                  <DialogDescription>
-                    This action cannot be undone. Are you sure you want to permanently
-                    delete this file from our servers?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button type="submit">Confirm</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            
 
           </div>
         </div>
