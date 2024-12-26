@@ -73,6 +73,22 @@ export default new class OrderService {
         }
     }
 
+    async getAllByDateAndClient(startDate: string, endDate: string, clientId: number): Promise<OrderWithBasicRelations[]> {
+        try {
+            // Validar el ID de entrada
+            //idValidateSchema.parse({ id });
+
+            // Llamamos al repositorio para obtener la orden por su ID
+            return await OrderRepository.getOrdersByDateRangeAndClient(startDate, endDate, clientId);
+        } catch (error: any) {
+            console.error('Error in OrderService:', error.message);
+            if (error instanceof z.ZodError) {
+                throw new Error(error.errors.map((e) => e.message).join(", "));
+            }
+            throw new Error('La orden no existe o no se pudo obtener.');
+        }
+    }
+
     // Crear una nueva orden
     async create(order: Partial<Order>): Promise<Order> {
         try {

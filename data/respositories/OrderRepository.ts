@@ -13,7 +13,7 @@ export default new class OrderRepository {
     async getOrders(): Promise<OrderWithBasicRelations[]> {
         const { data, error } = await this.client
             .from('pedidos')
-            .select('*, estados_pedidos(*), metodos_entregas(*)');
+            .select('*, estados_pedidos(*), metodos_entregas(*), clientes(*)');
 
         if (error) {
             console.error('Error fetching orders:', error);
@@ -26,7 +26,20 @@ export default new class OrderRepository {
     async getOrderWithAll(id: number): Promise<OrderWithFullRelations | null> {
         const { data, error } = await this.client
             .from('pedidos')
-            .select('*, detalles_pedidos(*, variaciones(*, productos(*), variaciones_atributos(*, atributos(*, tipos_atributos(*))))), estados_pedidos(*), metodos_entregas(*)')
+            .select(`*, 
+                detalles_pedidos(*, 
+                    variaciones(*, 
+                        productos(*), 
+                        variaciones_atributos(*, 
+                            atributos(*, 
+                                tipos_atributos(*)
+                            )
+                        )
+                    )
+                ),
+                clientes(*), 
+                estados_pedidos(*), 
+                metodos_entregas(*)`)
             .eq('id', id)
             .single();
 
@@ -35,6 +48,21 @@ export default new class OrderRepository {
             throw new Error('Unable to fetch order');
         }
         return data || null;
+    }
+
+    async getOrdersByDateRangeAndClient(startDate: string, endDate: string, clientId: number): Promise<OrderWithBasicRelations[]> {
+        const { data, error } = await this.client
+            .from('pedidos')
+            .select('*, estados_pedidos(*), metodos_entregas(*), clientes(*)')
+            .gte('fecha_entrega', startDate)
+            .lte('fecha_entrega', endDate)
+            .eq('cliente_id', clientId);
+    
+        if (error) {
+            console.error('Error fetching orders by date range:', error);
+            throw new Error('Unable to fetch orders by date range');
+        }
+        return data || [];
     }
 
     // Crear un nuevo pedido

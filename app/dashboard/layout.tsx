@@ -1,6 +1,6 @@
 "use client"
 
-import { Package, Users, Share2, ShoppingCart, ChevronDown } from 'lucide-react'
+import { Package, Users, Share2, ShoppingCart, ChevronDown, DownloadCloud } from 'lucide-react'
 
 import {
   Sidebar,
@@ -90,6 +90,15 @@ export default function Layout({ children }: LayoutProps) {
                   <Link href="/dashboard/usuarios" className="group">
                     <Users className="mr-2 size-4 transition-colors group-hover:text-primary" />
                     <span>Usuarios</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/dashboard/boletas" className="group">
+                    <DownloadCloud className="mr-2 size-4 transition-colors group-hover:text-primary" />
+                    <span>Emitir boleta</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

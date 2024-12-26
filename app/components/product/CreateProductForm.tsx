@@ -1,5 +1,5 @@
 'use client'
-import { CldImage } from 'next-cloudinary';
+import { CldImage, CldUploadWidget } from 'next-cloudinary';
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -124,21 +124,21 @@ export function CreateProductForm() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      
-      <h1 className="text-2xl font-bold mb-6">Crear producto</h1>
+
+      <h1 className="text-2xl font-bold mb-6">Crea una nueva prenda</h1>
       <form action={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <div>
-            <Label htmlFor="name">Nombre del producto</Label>
+            <Label htmlFor="name">Ingresa el nombre de la nueva prenda</Label>
             <Input id="name" name="name" required />
           </div>
 
           <div>
-            <Label htmlFor="description">Descripción</Label>
+            <Label htmlFor="description">Ingresa una descripcion para esa prenda (opcional)</Label>
             <Textarea id="description" name="description" required />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/*<div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="unitPrice">Precio unitario</Label>
               <Input
@@ -159,22 +159,31 @@ export function CreateProductForm() {
                 required
               />
             </div>
-          </div>
+          </div>*/}
 
-          {/*<div>
-            <Label>Sube una imagen</Label>
+          <div>
+            {/*<Label>Sube una imagen</Label>
             <div className="mt-2">
               <CldImage
                 alt='asd'
                 src="cld-sample-5"
-                width="500" 
+                width="500"
                 height="500"
                 crop={{
                   type: 'auto',
                   source: true
                 }}
               />
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+              <CldUploadWidget uploadPreset="uvzlyaie">
+                {({ open }) => {
+                  return (
+                    <button onClick={() => open()}>
+                      Upload an Image
+                    </button>
+                  );
+                }}
+              </CldUploadWidget>*/}
+              {/*<div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                 <input
                   type="file"
                   accept="image/*"
@@ -205,8 +214,8 @@ export function CreateProductForm() {
                   )}
                 </label>
               </div>
-            </div>
-          </div>*/}
+            </div>*/}
+          </div>
 
           {/*<div>
             <Label>Subir galería de imágenes</Label>
@@ -252,7 +261,7 @@ export function CreateProductForm() {
           </div>*/}
 
           <div>
-            <Label>Categorías</Label>
+            <Label>Elige la categoria a la que pertenece esta prenda</Label>
             <div className="mt-2 space-y-2">
               {categories.map((category: Category) => (
                 <div key={category.id} className="flex items-center space-x-2">

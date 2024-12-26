@@ -40,7 +40,7 @@ export default function page() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold'>Productos</h1>
+      <h1 className='text-2xl font-bold'>Prendas</h1>
       <ProductFilter products={products} setProducts={setFilteredProducts}></ProductFilter>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3'>
 

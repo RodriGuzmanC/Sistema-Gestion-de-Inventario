@@ -15,12 +15,14 @@ interface Order {
 interface OrderWithBasicRelations extends Order {
   estados_pedidos: OrderStatus
   metodos_entregas: DeliveryMethod
+  clientes: Client
 }
 
 interface OrderWithFullRelations extends Order {
   estados_pedidos: OrderStatus
   metodos_entregas: DeliveryMethod
   detalles_pedidos: OrderDetailWithFullRelations[]
+  clientes: Client
 }
 
 
@@ -29,3 +31,5 @@ interface PrepareOrderDetail extends OrderDetail {
   nombre_producto: string,
   variacion: VariationWithRelations,
 }
+
+

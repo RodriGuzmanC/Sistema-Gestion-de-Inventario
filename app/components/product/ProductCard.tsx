@@ -62,23 +62,15 @@ export function ProductCard({ product }: Props) {
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
           <h3 className="font-semibold text-white">{product.nombre_producto}</h3>
         </div>
-        <Badge variant={stockVariant} className="absolute top-2 right-2">
-          Stock: {product.stock}
-        </Badge>
+        
       </div>
       <CardContent className="grid gap-2.5 p-4">
         <p className="text-sm text-muted-foreground line-clamp-2">{product.descripcion}</p>
-        <Separator />
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <span className="text-sm text-muted-foreground">Unitario</span>
-            <div className="font-semibold">S/{product.precio_unitario}</div>
-          </div>
-          <div className="space-y-1">
-            <span className="text-sm text-muted-foreground">Mayorista</span>
-            <div className="font-semibold">S/{product.precio_mayorista}</div>
-          </div>
-        </div>
+        <div>
+        <Badge variant={stockVariant} className="w-fit">
+          Stock: {product.stock}
+        </Badge> 
+        </div>    
         <div className="absolute top-2 left-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
