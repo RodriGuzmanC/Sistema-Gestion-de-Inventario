@@ -42,10 +42,15 @@ export default function OrderFilter({
   const applyFilters = () => {
     let filtered = [...orders]
 
+    // Verifica que 'orders' no esté vacío
+    if (!filtered || filtered.length === 0) {
+      return; // Si está vacío o no es válido, no hacer nada
+    }
+
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(order =>
-        order.codigo.toLowerCase().includes(searchTerm.toLowerCase())
+        order.id.toString().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -65,6 +70,9 @@ export default function OrderFilter({
 
     // Apply sorting
     filtered.sort((a, b) => {
+      if (!a.codigo || !b.codigo) {
+        return 0; // Evita errores si 'codigo' no está presente
+      }
       if (sortDirection === 'asc') {
         return a.codigo.localeCompare(b.codigo)
       }

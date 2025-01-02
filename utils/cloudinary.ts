@@ -1,4 +1,4 @@
-'use server'
+/*'use server'
 const cloudinary = require('cloudinary');
 
 cloudinary.v2.config({
@@ -6,4 +6,4 @@ cloudinary.v2.config({
     api_key: process.env.API_KEY,
     api_secret: process.env.API_SECRET,
     secure: true,
-});
+});*/

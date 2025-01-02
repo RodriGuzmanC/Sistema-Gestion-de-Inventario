@@ -106,8 +106,9 @@ export const formatearFechaCorta = (fecha: string): string => {
 
 export const enlazarNombreDeProductoConAtributos = (item: OrderDetailWithFullRelations) => {
   let nombre = item.variaciones.productos.nombre_producto ?? ""
-  item.variaciones.variaciones_atributos.map((variacionAtributo)=>{
+  item.variaciones.variaciones_atributos.map((variacionAtributo) => {
     nombre += " | " + variacionAtributo.atributos.tipos_atributos.nombre + " " + variacionAtributo.atributos.valor
   })
   return nombre
 }
+

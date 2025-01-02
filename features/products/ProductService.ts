@@ -1,68 +1,60 @@
 import ProductRepository from "@/data/respositories/ProductRepository";
-import { cargarStockTotal } from "@/utils/utils";
 import { z } from "zod";
-
-
-
-// Esquemas ZOD para validar
-const baseSchema = {
-    nombre_producto: z.string()
-        .min(1, "El nombre del producto es requerido")
-        .max(255, "El nombre del producto es demasiado largo"),
-
-    descripcion: z.string()
-        .max(500, "La descripción es demasiado larga").optional(),
-
-    url_imagen: z.string()
-        .url("La URL de la imagen debe ser válida")
-        .max(255, "La URL de la imagen es demasiado larga").optional(),
-
-    precio_unitario: z.number()
-        .min(0, "El precio unitario no puede ser menor a 0")
-        .refine((val) => !isNaN(val), {
-            message: "El precio unitario debe ser un número válido",
-        }),
-
-    precio_mayorista: z.number()
-        .min(0, "El precio mayorista no puede ser menor a 0")
-        .refine((val) => !isNaN(val), {
-            message: "El precio mayorista debe ser un número válido",
-        }),
-
-    /*estado_producto_id: z.number()
-        .int("El ID del estado del producto debe ser un número entero")
-        .positive("El ID del estado del producto debe ser un número positivo"),*/
-
-};
-const updateSchema = z.object({
-    id: z.number({ required_error: "ID es requerido" }).positive("ID debe ser un numero positivo"),
-    ...baseSchema,
-}).partial();
-
-const idValidateSchema = z.object({
-    id: z.number({ required_error: "ID es requerido" }).positive("ID debe ser un numero positivo"),
-});
-
-const createSchema = z.object({
-    ...baseSchema,
-})
 
 
 export default new class ProductService {
     // Obtener todos los productos
-    async getAll(): Promise<ProductWithBasicRelations[]> {
+    private cargarStockTotal(product: ProductWithBasicRelations): number {
+        let stockTotal = 0;
+        product.variaciones.forEach((variacion) => {
+            stockTotal += variacion.stock;
+        });
+        return stockTotal;
+    }
+
+    async getAll(pagina: number = 1, itemsPorPagina: number = 10): Promise<PaginatedResponse<ProductWithBasicRelations>> {
         try {
-            const products = await ProductRepository.getProducts(); // Llama al repositorio para obtener todos los productos
-            // Cargar el stock total del producto teniendo en cuenta sus variaciones
-            products.map((product)=>{
-                const stockTotal = cargarStockTotal(product)
-                product.stock = stockTotal
-                // Coloca el placeholder en caso de null
+            // Validar los parámetros de paginación
+            if (pagina <= 0 || itemsPorPagina <= 0) {
+                throw new Error("Parámetros de paginación inválidos");
+            }
+
+            // Obtener todos los productos (sin paginación)
+            const allProducts = await ProductRepository.getProducts();
+
+            // Cargar el stock total de los productos teniendo en cuenta sus variaciones
+            allProducts.map((product) => {
+                const stockTotal = this.cargarStockTotal(product);
+                product.stock = stockTotal;
+
+                // Coloca el placeholder en caso de que la URL de la imagen esté vacía
                 if (product.url_imagen == null) {
-                    product.url_imagen = '/images/product-placeholder.jpg'
+                    product.url_imagen = '/images/product-placeholder.jpg';
                 }
-            })
-            return products
+            });
+
+            // Calcular el total de productos
+            const totalItems = allProducts.length;
+
+            // Calcular el total de páginas
+            const totalPaginas = Math.ceil(totalItems / itemsPorPagina);
+
+            // Calcular los productos para la página solicitada
+            const startIndex = (pagina - 1) * itemsPorPagina;
+            const endIndex = startIndex + itemsPorPagina;
+            const productsOnPage = allProducts.slice(startIndex, endIndex);
+
+            const paginacion: PaginatedResponse<ProductWithBasicRelations> = {
+                data: productsOnPage,
+                paginacion: {
+                    pagina_actual: pagina,
+                    total_items: totalItems,
+                    items_por_pagina: itemsPorPagina,
+                    total_paginas: totalPaginas,
+                },
+            }
+            // Retornar la respuesta con la paginación
+            return paginacion;
         } catch (error: any) {
             console.error('Error in ProductService:', error.message);
             throw new Error('No se obtuvieron los productos, intenta más tarde.');
@@ -72,13 +64,11 @@ export default new class ProductService {
     // Obtener un producto específico por su ID
     async getOne(id: number): Promise<ProductWithFullRelations | null> {
         try {
-            // Validar el ID de entrada
-            idValidateSchema.parse({ id });
 
             // Llama al repositorio para obtener un producto por su ID
             const product = await ProductRepository.getProductWithRelations(id);
             // Cargar el stock total del producto teniendo en cuenta sus variaciones
-            const stockTotal = cargarStockTotal(product)
+            const stockTotal = this.cargarStockTotal(product)
             product.stock = stockTotal
             // Coloca el placeholder en caso de null
             if (product.url_imagen == null) {
@@ -100,8 +90,6 @@ export default new class ProductService {
     // Crear un nuevo producto
     async create(product: Partial<Product>): Promise<Product> {
         try {
-            // Validar los datos de entrada con el esquema de creación
-            createSchema.parse({ ...product });
 
             // Llama al repositorio para crear un nuevo producto
             const res = await ProductRepository.createProduct(product);
@@ -136,8 +124,6 @@ export default new class ProductService {
     // Eliminar un producto
     async delete(id: number): Promise<void> {
         try {
-            // Validar el ID de entrada
-            idValidateSchema.parse({ id });
 
             // Llama al repositorio para eliminar el producto
             await ProductRepository.deleteProduct(id);

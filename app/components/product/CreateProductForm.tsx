@@ -1,8 +1,7 @@
 'use client'
-import { CldImage, CldUploadWidget } from 'next-cloudinary';
+import { CldUploadWidget } from 'next-cloudinary';
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { ImagePlus, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -11,61 +10,17 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import ProductService from '@/features/products/ProductService'
-import { executeAsyncFunction } from '@/utils/utils'
 import CategoryService from '@/features/categories/CategoryService'
 import CategoryProductService from '@/features/products/CategoryProductService'
 import { toast } from 'sonner';
-
+import useSWR from 'swr'
+import SharedFormSkeleton from '../global/skeletons/SharedFormSkeleton';
+import ErrorPage from '../global/skeletons/ErrorPage';
 
 export function CreateProductForm() {
   const router = useRouter()
-  const [mainImage, setMainImage] = useState<string | null>(null)
-  const [galleryImages, setGalleryImages] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [categories, setCategories] = useState<Category[]>([])
 
-  const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setMainImage(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-
-    // Subir archivo a Cloudinary
-    /*const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? ''); // Reemplaza con tu upload_preset
-    formData.append('cloud_name', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? ''); // Reemplaza con tu cloud_name
-
-    try {
-
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-      console.log('URL de la imagen subida:', data.secure_url); // URL de la imagen en Cloudinary
-      alert('Imagen subida con éxito: ' + data.secure_url);
-    } catch (error) {
-      console.error('Error al subir la imagen:', error);
-    }*/
-  }
-
-  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files) {
-      Array.from(files).forEach(file => {
-        const reader = new FileReader()
-        reader.onloadend = () => {
-          setGalleryImages(prev => [...prev, reader.result as string])
-        }
-        reader.readAsDataURL(file)
-      })
-    }
-  }
 
   async function handleSubmit(formData: FormData) {
     try {
@@ -95,12 +50,6 @@ export function CreateProductForm() {
       const categoriasNuevas = await CategoryProductService.createMultiple(categoriasProducto);
       console.log(`categorias nuevas: ${categoriasNuevas}`)
 
-      /*const sampleAsyncFunction = async () => {
-        console.log('Funcion asincrona ejecutada');
-        return new Promise((resolve) => setTimeout(() => resolve('Listo'), 3000)); // Simulando un retardo
-      };
-
-      executeAsyncFunction(sampleAsyncFunction);*/
       toast("Se ha creado exitosamente")
       router.push(`${productoNuevo.id}/variaciones/crear`)
       setIsSubmitting(true)
@@ -113,17 +62,28 @@ export function CreateProductForm() {
     }
   }
 
-  useEffect(() => {
+  const [urlUploadedImage, setUrlUploadedImage] = useState<string | null>(null);
+
+  /*useEffect(() => {
     async function cargarCategorias() {
       const data = await CategoryService.getAll()
       setCategories(data)
     }
 
     cargarCategorias()
-  }, [])
+  }, [])*/
+
+  const { data: categories, error, isLoading } = useSWR('productos/crear', () => CategoryService.getAll(), {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  })
+
+  if (error) return <ErrorPage></ErrorPage>
+  if (isLoading || categories == undefined) return <SharedFormSkeleton></SharedFormSkeleton>
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto overflow-auto">
 
       <h1 className="text-2xl font-bold mb-6">Crea una nueva prenda</h1>
       <form action={handleSubmit} className="space-y-6">
@@ -138,127 +98,44 @@ export function CreateProductForm() {
             <Textarea id="description" name="description" required />
           </div>
 
-          {/*<div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="unitPrice">Precio unitario</Label>
-              <Input
-                id="unitPrice"
-                name="unitPrice"
-                type="number"
-                step="0.01"
-                required
+          <div className='flex flex-col space-y-2'>
+            <Label>Sube una imagen</Label>
+            {/*<div className="mt-2">*/}
+            {urlUploadedImage ? (
+              <img
+                alt="asd"
+                src={urlUploadedImage}
+                width="100"
+                height="100"
+                style={{ objectFit: 'cover' }} // Puedes usar estilos para el tamaño y el ajuste de la imagen
               />
-            </div>
-            <div>
-              <Label htmlFor="wholesalePrice">Precio mayorista</Label>
-              <Input
-                id="wholesalePrice"
-                name="wholesalePrice"
-                type="number"
-                step="0.01"
-                required
-              />
-            </div>
-          </div>*/}
+            ) : (
+              <CldUploadWidget
+                uploadPreset="preset_alondra_md"
+                options={{
+                  cloudName: 'daxgq3gzj',
+                  apiKey: 'sZsXwdczsIDmTCzt_moZIzrE1bA',
 
-          <div>
-            {/*<Label>Sube una imagen</Label>
-            <div className="mt-2">
-              <CldImage
-                alt='asd'
-                src="cld-sample-5"
-                width="500"
-                height="500"
-                crop={{
-                  type: 'auto',
-                  source: true
                 }}
-              />
-              <CldUploadWidget uploadPreset="uvzlyaie">
+                onSuccess={(result) => {
+                  let imageUrl = null;
+                  if (typeof result.info !== 'string') {
+                    imageUrl = result?.info?.secure_url ?? null;
+                    console.log('Imagen cargada correctamente:', imageUrl);
+                  }
+                  setUrlUploadedImage(imageUrl)
+
+                }}>
                 {({ open }) => {
                   return (
-                    <button onClick={() => open()}>
+                    <Button variant={'default'} onClick={() => open()}>
                       Upload an Image
-                    </button>
+                    </Button>
                   );
                 }}
-              </CldUploadWidget>*/}
-              {/*<div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleMainImageUpload}
-                  className="hidden"
-                  id="mainImage"
-                  name="mainImage"
-                />
-                <label
-                  htmlFor="mainImage"
-                  className="cursor-pointer flex flex-col items-center justify-center gap-2"
-                >
-                  {mainImage ? (
-                    <Image
-                      src={mainImage}
-                      alt="Preview"
-                      width={200}
-                      height={200}
-                      className="object-cover rounded-lg"
-                    />
-                  ) : (
-                    <>
-                      <ImagePlus className="h-8 w-8 text-gray-400" />
-                      <span className="text-sm text-gray-500">
-                        Click para subir imagen
-                      </span>
-                    </>
-                  )}
-                </label>
-              </div>
-            </div>*/}
+              </CldUploadWidget>
+            )}
           </div>
-
-          {/*<div>
-            <Label>Subir galería de imágenes</Label>
-            <div className="mt-2">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleGalleryUpload}
-                  className="hidden"
-                  id="gallery"
-                  name="gallery"
-                />
-                <label
-                  htmlFor="gallery"
-                  className="cursor-pointer flex flex-col items-center justify-center gap-2"
-                >
-                  {galleryImages.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2">
-                      {galleryImages.map((img, idx) => (
-                        <Image
-                          key={idx}
-                          src={img}
-                          alt={`Gallery ${idx + 1}`}
-                          width={100}
-                          height={100}
-                          className="object-cover rounded-lg"
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <>
-                      <ImagePlus className="h-8 w-8 text-gray-400" />
-                      <span className="text-sm text-gray-500">
-                        Click para subir imágenes
-                      </span>
-                    </>
-                  )}
-                </label>
-              </div>
-            </div>
-          </div>*/}
 
           <div>
             <Label>Elige la categoria a la que pertenece esta prenda</Label>
