@@ -1,4 +1,4 @@
-import ProductService from '@/features/products/ProductService';
+import ClientService from '@/features/client/ClientService';
 import { handleError } from '@/utils/serverUtils';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -9,13 +9,13 @@ export async function GET(
     const id = params.id; // Obtén el id directamente
 
     if (!id) {
-        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+        return NextResponse.json({ error: 'Client ID is required' }, { status: 400 });
     }
 
     try {
-        const product = await ProductService.getOne(parseInt(id));
+        const data = await ClientService.getOne(parseInt(id));
         // Retornar la respuesta
-        return new Response(JSON.stringify(product), {
+        return new Response(JSON.stringify(data), {
             status: 200,
             headers: { "Content-Type": "application/json" }
         });
@@ -31,14 +31,14 @@ export async function PUT(
     const id = params.id; // Obtén el id directamente
 
     if (!id) {
-        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+        return NextResponse.json({ error: 'Client ID is required' }, { status: 400 });
     }
 
     try {
         const data = await request.json();
-        const updatedProduct = await ProductService.update(parseInt(id), data);
+        const updatedData = await ClientService.update(parseInt(id), data);
         // Retornar la respuesta
-        return new Response(JSON.stringify(updatedProduct), {
+        return new Response(JSON.stringify(updatedData), {
             status: 200,
             headers: { "Content-Type": "application/json" }
         });
@@ -54,13 +54,13 @@ export async function DELETE(
     const id = params.id; // Obtén el id directamente
 
     if (!id) {
-        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+        return NextResponse.json({ error: 'Client ID is required' }, { status: 400 });
     }
 
     try {
-        const res = await ProductService.delete(parseInt(id));
+        const deletedData = await ClientService.delete(parseInt(id));
         // Retornar la respuesta
-        return new Response(JSON.stringify(res), {
+        return new Response(JSON.stringify(deletedData), {
             status: 200,
             headers: { "Content-Type": "application/json" }
         });

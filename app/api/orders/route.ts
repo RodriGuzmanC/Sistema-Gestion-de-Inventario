@@ -1,7 +1,7 @@
 'use server'
+import OrderService from "@/features/orders/OrderService";
 import ProductService from "@/features/products/ProductService";
-import { handleError } from "@/utils/serverUtils";
-import { NextResponse, type NextRequest } from 'next/server'
+import { type NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
     try {
@@ -13,10 +13,10 @@ export async function GET(request: NextRequest) {
         const queryitems = searchParams.get('limit')
         const items = queryitems ? parseInt(queryitems) : 10
 
-        // Busqueda de productos
-        const products = await ProductService.getAll(pagina, items);
+        // Busqueda de ordenes
+        const orders = await OrderService.getAll(pagina, items);
         // Retornar la respuesta
-        return new Response(JSON.stringify(products), { 
+        return new Response(JSON.stringify(orders), { 
             status: 200, 
             headers: { "Content-Type": "application/json" }
         });
@@ -31,15 +31,4 @@ export async function GET(request: NextRequest) {
         );
     }
     
-}
-
-
-export async function POST(request: NextRequest) {
-    try {
-        const data = await request.json();
-        const newProduct = await ProductService.create(data);
-        return NextResponse.json(newProduct, { status: 201 });
-    } catch (error) {
-        return handleError(error)
-    }
 }

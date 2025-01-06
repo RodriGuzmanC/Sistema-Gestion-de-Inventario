@@ -1,5 +1,5 @@
 'use server'
-import ProductService from "@/features/products/ProductService";
+import ProductStatusService from "@/features/products/ProductStatusService";
 import { handleError } from "@/utils/serverUtils";
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
         const items = queryitems ? parseInt(queryitems) : 10
 
         // Busqueda de productos
-        const products = await ProductService.getAll(pagina, items);
+        const products = await ProductStatusService.getAll(pagina, items);
         // Retornar la respuesta
         return new Response(JSON.stringify(products), { 
             status: 200, 
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const data = await request.json();
-        const newProduct = await ProductService.create(data);
+        const newProduct = await ProductStatusService.create(data);
         return NextResponse.json(newProduct, { status: 201 });
     } catch (error) {
         return handleError(error)

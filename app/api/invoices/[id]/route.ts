@@ -1,6 +1,6 @@
-import ProductService from '@/features/products/ProductService';
+import InvoiceService from '@/features/invoices/InvoiceService';
 import { handleError } from '@/utils/serverUtils';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export async function GET(
     request: Request,
@@ -9,13 +9,13 @@ export async function GET(
     const id = params.id; // Obtén el id directamente
 
     if (!id) {
-        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+        return NextResponse.json({ error: 'Social Network ID is required' }, { status: 400 });
     }
 
     try {
-        const product = await ProductService.getOne(parseInt(id));
+        const data = await InvoiceService.getOne(parseInt(id));
         // Retornar la respuesta
-        return new Response(JSON.stringify(product), {
+        return new Response(JSON.stringify(data), {
             status: 200,
             headers: { "Content-Type": "application/json" }
         });
@@ -31,14 +31,14 @@ export async function PUT(
     const id = params.id; // Obtén el id directamente
 
     if (!id) {
-        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+        return NextResponse.json({ error: 'Social Network ID is required' }, { status: 400 });
     }
 
     try {
         const data = await request.json();
-        const updatedProduct = await ProductService.update(parseInt(id), data);
+        const updatedData = await InvoiceService.update(parseInt(id), data);
         // Retornar la respuesta
-        return new Response(JSON.stringify(updatedProduct), {
+        return new Response(JSON.stringify(updatedData), {
             status: 200,
             headers: { "Content-Type": "application/json" }
         });
@@ -54,13 +54,13 @@ export async function DELETE(
     const id = params.id; // Obtén el id directamente
 
     if (!id) {
-        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+        return NextResponse.json({ error: 'Social Network ID is required' }, { status: 400 });
     }
 
     try {
-        const res = await ProductService.delete(parseInt(id));
+        const deleteData = await InvoiceService.delete(parseInt(id));
         // Retornar la respuesta
-        return new Response(JSON.stringify(res), {
+        return new Response(JSON.stringify(deleteData), {
             status: 200,
             headers: { "Content-Type": "application/json" }
         });
