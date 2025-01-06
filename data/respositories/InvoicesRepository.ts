@@ -9,19 +9,44 @@ export default new class InvoicesRepository {
         this.client = createSupabaseClient();
     }
 
-    async getInvoices(): Promise<Invoice[]> {
+    async getInvoices(pages: number, itemsPerPage: number): Promise<PaginatedResponse<Invoice>> {
+        // Calcular los índices de paginación
+        const startIndex = (pages - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage - 1;
+
         const { data, error } = await this.client
             .from('boletas')
-            .select('*');
+            .select('*')
+            .range(startIndex, endIndex);
 
         if (error) {
             console.error('Error fetching invoices:', error);
             throw new Error('Unable to fetch invoices');
         }
-        return data || [];
+        // Obtener el total de items
+        const { count: totalItems } = await this.client
+            .from('boletas')
+            .select('*', { count: 'exact' }); // Esto obtiene solo el total sin traer los registros completos
+        if (!totalItems){
+            throw new Error('Invoices not found'); 
+        }
+
+        // Calcular el total de páginas
+        const totalPaginas = Math.ceil(totalItems / itemsPerPage);
+        const paginatedData: PaginatedResponse<Invoice> = {
+            data: data || [],
+            paginacion: {
+                pagina_actual: pages,
+                total_items: totalItems,
+                items_por_pagina: itemsPerPage,
+                total_paginas: totalPaginas,
+            },
+        };
+
+        return paginatedData;
     }
 
-    async getInvoice(id: number): Promise<Invoice | null> {
+    async getInvoice(id: number): Promise<DataResponse<Invoice>> {
         const { data, error } = await this.client
             .from('boletas')
             .select('*')
@@ -32,10 +57,15 @@ export default new class InvoicesRepository {
             console.error('Error fetching invoice:', error);
             throw new Error('Unable to fetch invoice');
         }
-        return data || null;
+
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<Invoice> = {
+            data: data || null,
+        }
+        return res;
     }
 
-    async createInvoice(invoice: Partial<Invoice>): Promise<Invoice> {
+    async createInvoice(invoice: Partial<Invoice>): Promise<DataResponse<Invoice>> {
         const { data, error } = await this.client
             .from('boletas')
             .insert(invoice)
@@ -49,10 +79,15 @@ export default new class InvoicesRepository {
             console.error('No records found to create');
             throw new Error('No records found');
         }
-        return data[0];
+
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<Invoice> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
-    async updateInvoice(id: number, updates: Partial<Invoice>): Promise<Invoice> {
+    async updateInvoice(id: number, updates: Partial<Invoice>): Promise<DataResponse<Invoice>> {
         const { data, error } = await this.client
             .from('boletas')
             .update(updates)
@@ -67,22 +102,37 @@ export default new class InvoicesRepository {
             console.error('No records found to update');
             throw new Error('No records found');
         }
-        return data[0];
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<Invoice> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
-    async deleteInvoice(id: number): Promise<void> {
-        const { error } = await this.client
+    async deleteInvoice(id: number): Promise<DataResponse<Invoice>> {
+        const { data, error } = await this.client
             .from('boletas')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .select();
 
         if (error) {
             console.error('Error deleting invoice:', error);
             throw new Error('Unable to delete invoice');
         }
+
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<Invoice> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
-    async getInvoiceWithDetailsByClient(clientId: number): Promise<InvoiceOrder[]> {
+    async getInvoiceWithDetailsByClient(pages: number, itemsPerPage: number, clientId: number): Promise<PaginatedResponse<InvoiceWithFullRelations>> {
+        // Calcular los índices de paginación
+        const startIndex = (pages - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage - 1;
+
         const { data, error } = await this.client
             .from('boletas')
             .select(`*, 
@@ -103,12 +153,33 @@ export default new class InvoicesRepository {
                 )
                 `)
             .eq('id', clientId)
-            .single();;
+            .range(startIndex, endIndex);
 
         if (error) {
             console.error('Error fetching invoice with details:', error);
             throw new Error('Unable to fetch invoice with details');
         }
-        return data || [];
+
+        // Obtener el total de items
+        const { count: totalItems } = await this.client
+            .from('boletas')
+            .select('*', { count: 'exact' }); // Esto obtiene solo el total sin traer los registros completos
+        if (!totalItems){
+            throw new Error('Invoices not found'); 
+        }
+
+        // Calcular el total de páginas
+        const totalPaginas = Math.ceil(totalItems / itemsPerPage);
+        const paginatedData: PaginatedResponse<InvoiceWithFullRelations> = {
+            data: data || [],
+            paginacion: {
+                pagina_actual: pages,
+                total_items: totalItems,
+                items_por_pagina: itemsPerPage,
+                total_paginas: totalPaginas,
+            },
+        };
+
+        return paginatedData;
     }
 }

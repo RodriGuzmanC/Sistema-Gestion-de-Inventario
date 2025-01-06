@@ -1,4 +1,5 @@
 import createSupabaseClient from '@/utils/dbClient';
+import { makePagination } from '@/utils/serverUtils';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export default new class ProductStatusRepository {
@@ -9,20 +10,25 @@ export default new class ProductStatusRepository {
     }
 
     // Obtener todos los estados de productos
-    async getProductStatuses(): Promise<ProductStatus[]> {
+    async getProductStatuses(pages: number, itemsPerPage: number): Promise<PaginatedResponse<ProductStatus>> {
+        // Calcular los índices de paginación
+        const startIndex = (pages - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage - 1;
+
         const { data, error } = await this.client
             .from('estados_productos')
-            .select('*');
+            .select('*')
+            .range(startIndex, endIndex);
 
         if (error) {
             console.error('Error fetching product statuses:', error);
             throw new Error('Unable to fetch product statuses');
         }
-        return data || [];
+        return makePagination<ProductStatus>(this.client, data, 'estados_productos', pages, itemsPerPage)
     }
 
     // Obtener un estado de producto específico por su ID
-    async getProductStatus(id: number): Promise<ProductStatus | null> {
+    async getProductStatus(id: number): Promise<DataResponse<ProductStatus>> {
         const { data, error } = await this.client
             .from('estados_productos')
             .select('*')
@@ -33,11 +39,16 @@ export default new class ProductStatusRepository {
             console.error('Error fetching product status:', error);
             throw new Error('Unable to fetch product status');
         }
-        return data || null;
+
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<ProductStatus> = {
+            data: data || null,
+        }
+        return res;
     }
 
     // Crear un nuevo estado de producto
-    async createProductStatus(productStatus: Partial<ProductStatus>): Promise<ProductStatus> {
+    async createProductStatus(productStatus: Partial<ProductStatus>): Promise<DataResponse<ProductStatus>> {
         const { data, error } = await this.client
             .from('estados_productos')
             .insert(productStatus)
@@ -51,11 +62,15 @@ export default new class ProductStatusRepository {
             console.error('No records found to create');
             throw new Error('No records found');
         }
-        return data[0]; 
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<ProductStatus> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
     // Actualizar un estado de producto existente
-    async updateProductStatus(id: number, updates: Partial<ProductStatus>): Promise<ProductStatus> {
+    async updateProductStatus(id: number, updates: Partial<ProductStatus>): Promise<DataResponse<ProductStatus>> {
         const { data, error } = await this.client
             .from('estados_productos')
             .update(updates)
@@ -70,19 +85,29 @@ export default new class ProductStatusRepository {
             console.error('No records found to update');
             throw new Error('No records found');
         }
-        return data[0]; 
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<ProductStatus> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
     // Eliminar un estado de producto por su ID
-    async deleteProductStatus(id: number): Promise<void> {
-        const { error } = await this.client
+    async deleteProductStatus(id: number): Promise<DataResponse<ProductStatus>> {
+        const { data, error } = await this.client
             .from('estados_productos')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .select();
 
         if (error) {
             console.error('Error deleting product status:', error);
             throw new Error('Unable to delete product status');
         }
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<ProductStatus> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 }

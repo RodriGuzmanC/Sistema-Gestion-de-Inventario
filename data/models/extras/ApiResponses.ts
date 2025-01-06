@@ -10,6 +10,6 @@ interface PaginatedResponse<T> {
 };
 
 interface DataResponse<T> {
-    data: T | T[];  // Puede ser un solo objeto o un array de objetos
+    data: T;  // Puede ser un solo objeto o un array de objetos
     error?: string | null;  // De nuevo, para manejar posibles errores
 };

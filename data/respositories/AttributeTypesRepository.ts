@@ -1,5 +1,6 @@
 
 import createSupabaseClient from '@/utils/dbClient';
+import { makePagination } from '@/utils/serverUtils';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export default new class AttributeTypesRepository {
@@ -21,16 +22,21 @@ export default new class AttributeTypesRepository {
         return data || [];
     }
 
-    async getAttributeTypesWithAttributes(): Promise<AttributeTypesWithAttributes[]> {
+    async getAttributeTypesWithAttributes(page: number, itemsPerPage: number): Promise<PaginatedResponse<AttributeTypesWithAttributes>> {
+        // Calcular los índices de paginación
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage - 1;
+
         const { data, error } = await this.client
             .from('tipos_atributos')
-            .select('*, atributos(*)');
+            .select('*, atributos(*)')
+            .range(startIndex, endIndex);
 
         if (error) {
             console.error('Error fetching attributes types with attributes:', error);
             throw new Error('Unable to fetch attributes types with attributes');
         }
-        return data || [];
+        return makePagination<AttributeTypesWithAttributes>(this.client, data, 'tipos_atributos', page, itemsPerPage)
     }
 
 
@@ -48,7 +54,7 @@ export default new class AttributeTypesRepository {
         return data || null;
     }
 
-    async createAttributeType(attributeType: Partial<AttributeType>): Promise<AttributeType> {
+    async createAttributeType(attributeType: Partial<AttributeType>): Promise<DataResponse<AttributeType>> {
         const { data, error } = await this.client
             .from('tipos_atributos')
             .insert(attributeType)
@@ -63,10 +69,14 @@ export default new class AttributeTypesRepository {
             console.error('No records found to update');
             throw new Error('No records found');
         }
-        return data[0];
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<AttributeType> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
-    async updateAttributeType(id: number, updates: Partial<AttributeType>): Promise<AttributeType> {
+    async updateAttributeType(id: number, updates: Partial<AttributeType>): Promise<DataResponse<AttributeType>> {
         const { data, error } = await this.client
             .from('tipos_atributos')
             .update(updates)
@@ -82,19 +92,29 @@ export default new class AttributeTypesRepository {
             console.error('No records found to update');
             throw new Error('No records found');
         }
-        return data[0]; 
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<AttributeType> = {
+            data: data[0] || null,
+        }
+        return res; 
     }
 
-    async deleteAttributeType(id: number): Promise<void> {
-        const { error } = await this.client
+    async deleteAttributeType(id: number): Promise<DataResponse<AttributeType>> {
+        const { data, error } = await this.client
             .from('tipos_atributos')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .select();
 
         if (error) {
             console.error('Error deleting attributes types:', error);
             throw new Error('Unable to delete attributes types');
         }
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<AttributeType> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 }
 

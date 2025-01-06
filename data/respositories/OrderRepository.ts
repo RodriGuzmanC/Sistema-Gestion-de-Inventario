@@ -10,20 +10,60 @@ export default new class OrderRepository {
     }
 
     // Obtener todos los pedidos
-    async getOrders(): Promise<OrderWithBasicRelations[]> {
+    async getOrders(pages: number, itemsPerPage: number): Promise<PaginatedResponse<OrderWithFullRelations>> {
+        // Calcular los índices de paginación
+        const startIndex = (pages - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage - 1;
+
         const { data, error } = await this.client
             .from('pedidos')
-            .select('*, estados_pedidos(*), metodos_entregas(*), clientes(*)');
+            .select(`*, 
+                detalles_pedidos(*, 
+                    variaciones(*, 
+                        productos(*), 
+                        variaciones_atributos(*, 
+                            atributos(*, 
+                                tipos_atributos(*)
+                            )
+                        )
+                    )
+                ),
+                clientes(*), 
+                estados_pedidos(*), 
+                metodos_entregas(*)`)
+            .range(startIndex, endIndex); // Paginación
+
 
         if (error) {
             console.error('Error fetching orders:', error);
             throw new Error('Unable to fetch orders');
         }
-        return data || [];
+
+        // Obtener el total de items
+        const { count: totalItems } = await this.client
+            .from('pedidos')
+            .select('*', { count: 'exact' }); // Esto obtiene solo el total sin traer los registros completos
+        if (!totalItems){
+            throw new Error('Orders not found'); 
+        }
+
+        // Calcular el total de páginas
+        const totalPaginas = Math.ceil(totalItems / itemsPerPage);
+        const paginatedData: PaginatedResponse<OrderWithFullRelations> = {
+            data: data || [],
+            paginacion: {
+                pagina_actual: pages,
+                total_items: totalItems,
+                items_por_pagina: itemsPerPage,
+                total_paginas: totalPaginas,
+            },
+        };
+
+        return paginatedData;
     }
 
     // Obtener un pedido específico por su ID
-    async getOrderWithAll(id: number): Promise<OrderWithFullRelations | null> {
+    async getOrderWithAll(id: number): Promise<DataResponse<OrderWithFullRelations>> {
         const { data, error } = await this.client
             .from('pedidos')
             .select(`*, 
@@ -47,7 +87,12 @@ export default new class OrderRepository {
             console.error('Error fetching order:', error);
             throw new Error('Unable to fetch order');
         }
-        return data || null;
+
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<OrderWithFullRelations> = {
+            data: data || null,
+        }
+        return res;
     }
 
     async getOrdersByDateRangeAndClient(startDate: string, endDate: string, clientId: number): Promise<OrderWithBasicRelations[]> {
@@ -66,7 +111,7 @@ export default new class OrderRepository {
     }
 
     // Crear un nuevo pedido
-    async createOrder(order: Partial<Order>): Promise<Order> {
+    async createOrder(order: Partial<Order>): Promise<DataResponse<Order>> {
         const { data, error } = await this.client
             .from('pedidos')
             .insert(order)
@@ -80,11 +125,14 @@ export default new class OrderRepository {
             console.error('No records found to create');
             throw new Error('No records found');
         }
-        return data[0]; 
+        const res: DataResponse<Order> = {
+            data: data[0] || null,
+        }
+        return res; 
     }
 
     // Actualizar un pedido existente
-    async updateOrder(id: number, updates: Partial<Order>): Promise<Order> {
+    async updateOrder(id: number, updates: Partial<Order>): Promise<DataResponse<Order>> {
         const { data, error } = await this.client
             .from('pedidos')
             .update(updates)
@@ -99,19 +147,27 @@ export default new class OrderRepository {
             console.error('No records found to update');
             throw new Error('No records found');
         }
-        return data[0];
+        const res: DataResponse<Order> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
     // Eliminar un pedido por su ID
-    async deleteOrder(id: number): Promise<void> {
-        const { error } = await this.client
+    async deleteOrder(id: number): Promise<DataResponse<Order>> {
+        const { data, error } = await this.client
             .from('pedidos')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .select();
 
         if (error) {
             console.error('Error deleting order:', error);
             throw new Error('Unable to delete order');
         }
+        const res: DataResponse<Order> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 }
