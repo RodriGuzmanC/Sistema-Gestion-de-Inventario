@@ -47,9 +47,14 @@ const createSchema = z.object({
 
 export default new class OrderService {
     // Obtener todas las órdenes
-    async getAll(): Promise<OrderWithBasicRelations[]> {
+    async getAll(pages: number = 1, itemsPerPage: number = 10): Promise<PaginatedResponse<OrderWithFullRelations>> {
+        // Validar los parámetros de paginación
+        if (pages <= 0 || itemsPerPage <= 0) {
+            throw new Error("Parámetros de paginación inválidos");
+        }
+
         try {
-            return await OrderRepository.getOrders(); // Llamamos al repositorio para obtener todas las órdenes.
+            return await OrderRepository.getOrders(pages, itemsPerPage); // Llamamos al repositorio para obtener todas las órdenes.
         } catch (error: any) {
             console.error('Error in OrderService:', error.message);
             throw new Error('No se obtuvieron las órdenes, intenta más tarde.');
@@ -57,10 +62,8 @@ export default new class OrderService {
     }
 
     // Obtener una orden específica por su ID
-    async getOne(id: number): Promise<OrderWithFullRelations | null> {
+    async getOne(id: number): Promise<DataResponse<OrderWithFullRelations>> {
         try {
-            // Validar el ID de entrada
-            idValidateSchema.parse({ id });
 
             // Llamamos al repositorio para obtener la orden por su ID
             return await OrderRepository.getOrderWithAll(id);
@@ -75,9 +78,6 @@ export default new class OrderService {
 
     async getAllByDateAndClient(startDate: string, endDate: string, clientId: number): Promise<OrderWithBasicRelations[]> {
         try {
-            // Validar el ID de entrada
-            //idValidateSchema.parse({ id });
-
             // Llamamos al repositorio para obtener la orden por su ID
             return await OrderRepository.getOrdersByDateRangeAndClient(startDate, endDate, clientId);
         } catch (error: any) {
@@ -90,54 +90,37 @@ export default new class OrderService {
     }
 
     // Crear una nueva orden
-    async create(order: Partial<Order>): Promise<Order> {
+    async create(order: Partial<Order>): Promise<DataResponse<Order>> {
         try {
-            // Validar los datos de entrada
-            //createSchema.parse({ ...order });
-
             // Llamamos al repositorio para crear la nueva orden
             const res = await OrderRepository.createOrder(order);
             return res;
         } catch (error) {
             console.error('Error in create:', error);
-            if (error instanceof z.ZodError) {
-                throw new Error(error.errors.map((e) => e.message).join(", "));
-            }
             throw new Error('Error al crear la orden, intenta más tarde.');
         }
     }
 
     // Actualizar una orden existente
-    async update(id: number, updates: Partial<Order>): Promise<Order> {
+    async update(id: number, updates: Partial<Order>): Promise<DataResponse<Order>> {
         try {
-            // Validar los datos de entrada
-            updateSchema.parse({ id, ...updates });
-
             // Llamamos al repositorio para actualizar la orden
             const res = await OrderRepository.updateOrder(id, updates);
             return res;
         } catch (error) {
             console.error('Error in update:', error);
-            if (error instanceof z.ZodError) {
-                throw new Error(error.errors.map((e) => e.message).join(", "));
-            }
             throw new Error('Error al actualizar la orden, intenta más tarde.');
         }
     }
 
     // Eliminar una orden
-    async delete(id: number): Promise<void> {
+    async delete(id: number): Promise<DataResponse<Order>> {
         try {
-            // Validar el ID de entrada
-            idValidateSchema.parse({ id });
-
             // Llamamos al repositorio para eliminar la orden
-            await OrderRepository.deleteOrder(id);
+            const res = await OrderRepository.deleteOrder(id);
+            return res
         } catch (error: any) {
             console.error('Error in delete:', error);
-            if (error instanceof z.ZodError) {
-                throw new Error(error.errors.map((e) => e.message).join(", "));
-            }
             throw new Error('Error al eliminar la orden, intenta más tarde.');
         }
     }
