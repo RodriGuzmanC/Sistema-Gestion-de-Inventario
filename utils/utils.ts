@@ -112,3 +112,73 @@ export const enlazarNombreDeProductoConAtributos = (item: OrderDetailWithFullRel
   return nombre
 }
 
+
+
+
+export async function apiRequest (
+  {url, method = 'GET', body = null, headers = {}} : 
+  {url: string, method?: string, body?: any, headers?: any}) {
+  // Configuración de cabeceras por defecto
+  const defaultHeaders = {
+    'Content-Type': 'application/json',
+    ...headers,  // Permite sobrescribir cabeceras por defecto
+  };
+
+  try {
+    // Preparar el cuerpo de la solicitud dependiendo del método
+    let requestBody: any = undefined;
+
+    switch (method) {
+      case 'POST':
+      case 'PUT':
+      case 'PATCH':
+        // Para POST, PUT o PATCH, agregamos el body
+        if (body) {
+          requestBody = JSON.stringify(body);
+        }
+        break;
+      case 'DELETE':
+        // Eliminar el cuerpo para DELETE
+        requestBody = undefined;
+        break;
+      default:
+        // Para otros métodos como GET, no necesitamos cuerpo
+        requestBody = undefined;
+        break;
+    }
+
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL!
+    // Realizamos la solicitud fetch
+    const res = await fetch(`${API_URL}/api/${url}`, {
+      method,           // Método de la petición (GET, POST, DELETE, etc.)
+      headers: defaultHeaders,  // Cabeceras de la solicitud
+      body: requestBody,        // Cuerpo solo si es necesario (POST, PUT, PATCH)
+    });
+
+    // Manejar errores si la respuesta no es exitosa
+    if (!res.ok) {
+      const errorMessage = await res.text();  // Obtener el mensaje de error si existe
+      throw new Error(`Error: ${res.status} - ${errorMessage}`);
+    }
+
+    // Procesar la respuesta dependiendo del método
+    switch (method) {
+      case 'GET':
+        // Si es GET, retornamos los datos en formato JSON
+        const data = await res.json();
+        return data;
+
+      case 'DELETE':
+        // Si es DELETE, retornamos un mensaje indicando éxito sin contenido
+        return res.status === 204 ? { message: 'Success, no content' } : {};
+
+      default:
+        // Para POST, PUT, PATCH, o cualquier otro método con respuesta en JSON
+        return await res.json();
+    }
+  } catch (error) {
+    // Manejo de errores: si ocurre un error, retornamos un objeto con el error
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+    return { errorMsg };
+  }
+};

@@ -1,50 +1,29 @@
-import { createServerClient, type CookieOptions  } from "@supabase/ssr";
-import { SupabaseClient } from "@supabase/supabase-js"; // Importar desde @supabase/supabase-js
-import { cookies } from "next/headers";
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
-// Métodos para interactuar con la base de datos
+export async function createClient() {
+    const cookieStore = await cookies()
 
-
-export const createVariation = async (client: SupabaseClient, variationData: Object) => {
-  const { data, error } = await client
-    .from('variaciones')
-    .insert([variationData]); // Inserta un nuevo producto
-
-  if (error) {
-    console.error("Error al crear la variacion:", error.message, error.details, error.hint);
-    throw new Error(`No es posible crear la variacion: ${error.message}`);
-  }
-
-  return data;
-};
-
-
-
-
-/** Atributos */
-
-export const getAttributes = async (client: SupabaseClient) => {
-  const { data, error } = await client
-    .from('atributos')
-    .select('*');
-
-  if (error) {
-    console.error("Error fetching products:", error);
-    throw new Error("Unable to fetch products");
-  }
-  
-  return data;
-};
-
-export const getValueAttributes = async (client: SupabaseClient, atributteId: number) => {
-  const { data, error } = await client
-    .from('valores_atributos')
-    .select('*')
-    .eq('atributo_id', atributteId);
-  if (error) {
-    console.error("Error fetching products:", error);
-    throw new Error("Unable to fetch products");
-  }
-  
-  return data;
-};
+    return createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() {
+                    return cookieStore.getAll()
+                },
+                setAll(cookiesToSet) {
+                    try {
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            cookieStore.set(name, value, options)
+                        )
+                    } catch {
+                        // The `setAll` method was called from a Server Component.
+                        // This can be ignored if you have middleware refreshing
+                        // user sessions.
+                    }
+                },
+            },
+        }
+    )
+}
