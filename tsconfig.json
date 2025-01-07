@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowUmdGlobalAccess": true,
+    "lib": ["dom", "dom.iterable", "esnext", "es2015"], // Se agrego es2015
+    "target": "es2015",  // o "es2016", "es2017", etc.
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -21,6 +23,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "google-one-tap.d.ts"],
   "exclude": ["node_modules"]
 }
