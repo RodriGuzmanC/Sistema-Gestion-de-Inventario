@@ -1,5 +1,6 @@
 
 import createSupabaseClient from '@/utils/dbClient';
+import { makePagination } from '@/utils/serverUtils';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export default new class AttributeRepository {
@@ -9,19 +10,25 @@ export default new class AttributeRepository {
         this.client = createSupabaseClient();
     }
 
-    async getAttributes(): Promise<Attribute[]> {
+    async getAttributes(page: number, itemsPerPage: number): Promise<PaginatedResponse<Attribute>> {
+        // Calcular los índices de paginación
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage - 1;
+
         const { data, error } = await this.client
             .from('atributos')
-            .select('*');
+            .select('*')
+            .range(startIndex, endIndex);
 
         if (error) {
             console.error('Error fetching attributes:', error);
             throw new Error('Unable to fetch attributes');
         }
-        return data || [];
+        
+        return makePagination<Attribute>(this.client, data, 'atributos', page, itemsPerPage)
     }
 
-    async getAttribute(id: number): Promise<Attribute | null> {
+    async getAttribute(id: number): Promise<DataResponse<Attribute>> {
         const { data, error } = await this.client
             .from('atributos')
             .select('*')
@@ -32,10 +39,14 @@ export default new class AttributeRepository {
             console.error('Error fetching attributes:', error);
             throw new Error('Unable to fetch attributes');
         }
-        return data || null;
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<Attribute> = {
+            data: data || null,
+        }
+        return res;
     }
 
-    async createAttribute(attribute: Partial<Attribute>): Promise<Attribute> {
+    async createAttribute(attribute: Partial<Attribute>): Promise<DataResponse<Attribute>> {
         const { data, error } = await this.client
             .from('atributos')
             .insert(attribute)
@@ -49,10 +60,14 @@ export default new class AttributeRepository {
             console.error('No records found to create');
             throw new Error('No records found');
         }
-        return data[0]; 
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<Attribute> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
-    async updateAttribute(id: number, updates: Partial<Attribute>): Promise<Attribute> {
+    async updateAttribute(id: number, updates: Partial<Attribute>): Promise<DataResponse<Attribute>> {
         const { data, error } = await this.client
             .from('atributos')
             .update(updates)
@@ -68,18 +83,28 @@ export default new class AttributeRepository {
             console.error('No records found to update');
             throw new Error('No records found');
         }
-        return data[0];
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<Attribute> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
-    async deleteAttribute(id: number): Promise<void> {
-        const { error } = await this.client
+    async deleteAttribute(id: number): Promise<DataResponse<Attribute>> {
+        const { data, error } = await this.client
             .from('atributos')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .select();
 
         if (error) {
             console.error('Error deleting attributes:', error);
             throw new Error('Unable to delete attributes');
         }
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<Attribute> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 }
