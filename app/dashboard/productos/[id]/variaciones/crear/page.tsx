@@ -20,6 +20,9 @@ import VariationAttributeService from '@/features/variations/VariationAttributeS
 import ProductService from '@/features/products/ProductService'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import useSWR from 'swr'
+import { apiRequest } from '@/utils/utils'
+import { swrSettings } from '@/utils/swr/settings'
 
 
 
@@ -46,8 +49,6 @@ export default function CreateVariation({
 }: {
   params: Params
 }) {
-  const [typesWithVariations, setTypesWithVariations] = useState<AttributeTypesWithAttributes[]>([])
-  const [product, setProduct] = useState<Product | null>()
   const router = useRouter()
   //  Variaciones
   const [variations, setVariations] = useState<ProductVariation[]>([
@@ -206,18 +207,11 @@ export default function CreateVariation({
     }
   }
 
-  useEffect(() => {
-    async function cargarTiposDeAtributosConAtributos() {
-      const tiposConAtributos = await AttributeTypesService.getAllWithAttributes()
-      setTypesWithVariations(tiposConAtributos)
-    }
-    async function cargarProducto() {
-      const producto = await ProductService.getOne(parseInt(params.id))
-      setProduct(producto)
-    }
-    cargarProducto()
-    cargarTiposDeAtributosConAtributos()
-  }, [])
+  const { data: typesWithVariations, error, isLoading } = useSWR<PaginatedResponse<AttributeTypesWithAttributes>>('attribute-types-with-attributes', () => apiRequest({url: 'products/attributes-types'}), swrSettings)
+
+  const { data: product, error: productError, isLoading: productLoading } = useSWR<DataResponse<ProductWithFullRelations>>('product', () => apiRequest({url: 'products/' + params.id}), swrSettings)
+
+
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Crear variacion de producto</h1>
@@ -230,17 +224,17 @@ export default function CreateVariation({
         {/* Image */}
         <div className="aspect-square w-24 h-24 relative bg-muted rounded-md overflow-hidden flex-shrink-0">
           <img
-            src={product?.url_imagen ?? ''}
-            alt={product?.nombre_producto ?? 'Product Image'}
+            src={product?.data?.url_imagen ?? ''}
+            alt={product?.data?.nombre_producto ?? 'Product Image'}
             className="object-cover w-full h-full"
           ></img>
         </div>
 
         {/* Content */}
         <div className="flex flex-col justify-start flex-1">
-          <h3 className="font-medium text-lg">{product?.nombre_producto}</h3>
+          <h3 className="font-medium text-lg">{product?.data?.nombre_producto}</h3>
           <p className="text-sm line-clamp-2 text-black">
-            {product?.descripcion}
+            {product?.data?.descripcion}
           </p>
         </div>
       </Card>
@@ -320,7 +314,7 @@ export default function CreateVariation({
                           <SelectValue placeholder="Seleccionar" />
                         </SelectTrigger>
                         <SelectContent>
-                          {typesWithVariations.map((type) => (
+                          {typesWithVariations?.data.map((type) => (
                             <SelectItem key={type.id} value={type.id.toString()}>
                               {type.nombre}
                             </SelectItem>
@@ -341,7 +335,7 @@ export default function CreateVariation({
                           <SelectValue placeholder="Seleccionar" />
                         </SelectTrigger>
                         <SelectContent>
-                          {typesWithVariations
+                          {typesWithVariations?.data
                             .find(type => type.id === atributo.tipo_id)
                             ?.atributos.map((attr) => (
                               <SelectItem key={attr.id} value={attr.id.toString()}>

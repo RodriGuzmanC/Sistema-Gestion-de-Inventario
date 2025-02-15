@@ -2,23 +2,23 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Edit2, Plus, Trash2 } from 'lucide-react'
+import { Edit2, Trash2 } from 'lucide-react'
 import { ProductDetailCard } from "@/app/components/product/ProductDetailCard"
-import { VariationCard } from "@/app/components/variation/VariationCard"
-import ProductRepository from "@/data/respositories/ProductRepository"
 import FilterVariations from "@/app/components/variation/FilterVariations"
-import AttributeTypesService from "@/features/attributes/AttributeTypesService"
-import ProductService from "@/features/products/ProductService"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { apiRequest } from "@/utils/utils"
+import { swrSettings } from "@/utils/swr/settings"
+import useSWR from "swr"
+import ErrorPage from "@/app/components/global/skeletons/ErrorPage"
+import { Skeleton } from "@/components/ui/skeleton"
+import { EditVariationModal } from "@/app/components/variation/EditVariationModal"
 
 type Params = {
     id: string
 }
 
 export default function VariationsList({ params }: { params: Params }) {
-    const [product, serProduct] = useState<ProductWithFullRelations>()
-    const [attributeTypes, setAttributeTypes] = useState<AttributeTypesWithAttributes[]>([])
-    const [variations, setVariations] = useState<VariationWithRelations[]>([])
+
     const [filteredVariations, setFilteredVariations] = useState<VariationWithRelations[]>([])
 
     const handleEdit = (id: string) => {
@@ -28,49 +28,39 @@ export default function VariationsList({ params }: { params: Params }) {
 
     const handleDelete = (id: string) => {
         console.log("Delete variation:", id)
-        // Implement delete logic
+        // Llamado a la api
+        try {
+            apiRequest({url: `products/1/variations/${id}`, method: 'DELETE'})
+            console.log("Se elimino bien")
+        } catch (error) {
+            console.log("No se elimino")
+        }        
     }
 
-    useEffect(() => {
-        async function cargarProductoYVariaciones() {
-            const res = await ProductService.getOne(parseInt(params.id))
-            if (!res) return (<div>Producto no definido</div>)
-            serProduct(res)
-            setVariations(res.variaciones)
-            setFilteredVariations(res.variaciones)
-        }
-        async function cargarTiposDeAtributos() {
-            const res = await AttributeTypesService.getAllWithAttributes()
-            setAttributeTypes(res)
-        }
-        cargarProductoYVariaciones()
-        cargarTiposDeAtributos()
-    }, [])
+    // Cargar producto
+    const { data: product, error, isLoading } = useSWR<DataResponse<ProductWithFullRelations>>('product', () => apiRequest({url: 'products/' + params.id}), swrSettings)
 
-    if (product == undefined) return (<div>Producto no definido</div>)
+       // Actualizar filteredVariations cuando product cambie
+useEffect(() => {
+    if (product) {
+      setFilteredVariations(product.data.variaciones);  // Establecer las variaciones
+    }
+  }, [product]);  // Dependencia en "product"
+  
+    // Cargar tipos de atributos
+    const { data: attributeTypes, error: attributeTypesError, isLoading: attributeTypesLoading } = useSWR<PaginatedResponse<AttributeTypesWithAttributes>>('attribute-types', () => apiRequest({url: 'products/attributes-types/'}), swrSettings)
 
-    /*return (
-        <div className="container mx-auto py-6">
-            <h1 className="mb-6 text-2xl font-bold">Listado de variaciones</h1>
+    // Si hay error, mostrar página de error    
+    if (error || attributeTypesError) return (<ErrorPage />)
 
-            <ProductDetailCard product={product} />
+    // Si hay loading, mostrar skeleton
+    if (isLoading || attributeTypesLoading) return (<Skeleton />)
 
-            <div className="mb-6 flex items-center justify-between gap-4">
-                <FilterVariations variations={variations} setVariations={setFilteredVariations} attributeTypes={attributeTypes}  ></FilterVariations>
-            </div>
+    // Si no hay producto o tipos de atributos, mostrar skeleton
+    if (!product || !attributeTypes) return (<Skeleton />)
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredVariations.map((variation) => (
-                    <VariationCard
-                        key={variation.id}
-                        variation={variation}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                    />
-                ))}
-            </div>
-        </div>
-    )*/
+
+ 
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('es-PE', {
@@ -87,19 +77,20 @@ export default function VariationsList({ params }: { params: Params }) {
             .map(va => `${va.atributos.tipos_atributos.nombre} ${va.atributos.valor}`)
             .join(" ")
 
-        return `${product.nombre_producto} ${attributes}`
+        return `${product.data.nombre_producto} ${attributes}`
     }
+
     return (
         <div className="container mx-auto py-6">
             <h1 className="mb-6 text-2xl font-bold">Listado de variaciones</h1>
 
-            <ProductDetailCard product={product} />
+            <ProductDetailCard product={product.data} />
 
             <div className="mb-6 flex items-center justify-between gap-4">
                 <FilterVariations
-                    variations={variations}
+                    variations={product.data.variaciones}
                     setVariations={setFilteredVariations}
-                    attributeTypes={attributeTypes}
+                    attributeTypes={attributeTypes?.data}
                 />
             </div>
 
@@ -125,13 +116,7 @@ export default function VariationsList({ params }: { params: Params }) {
                                 <TableCell>{variation.stock}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex flex-col justify-center gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            onClick={() => handleEdit(variation.id.toString())}
-                                        >
-                                            <Edit2 className="h-4 w-4" />
-                                        </Button>
+                                        <EditVariationModal variationObj={variation} attributeTypes={attributeTypes.data} key={variation.id} ></EditVariationModal>
                                         <Button
                                             variant="outline"
                                             size="icon"

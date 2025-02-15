@@ -1,6 +1,6 @@
 "use client"
 
-import { Package, Users, Share2, ShoppingCart, ChevronDown, DownloadCloud } from 'lucide-react'
+import { Package, Users, Share2, ShoppingCart, ChevronDown, DownloadCloud, LogOut } from 'lucide-react'
 
 import {
   Sidebar,
@@ -21,6 +21,8 @@ import { ProductCard } from '../components/product/ProductCard'
 import Link from 'next/link'
 import { Toaster } from '@/components/ui/sonner'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Button } from '@/components/ui/button'
+import { signOut } from '@/features/auth/SignWithPassword'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -102,6 +104,23 @@ export default function Layout({ children }: LayoutProps) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
+              {/* Sección separada para el botón de cerrar sesión */}
+              <div className="mt-auto">
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <form>
+                      <Button
+                        formAction={signOut}
+                        className="w-full flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 rounded-lg py-2"
+                      >
+                        <LogOut className="mr-2 size-4" />
+                        <span>Cerrar sesión</span>
+                      </Button>
+                    </form>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </div>
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>
