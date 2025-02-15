@@ -11,22 +11,29 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import AttributeTypesService from "@/features/attributes/AttributeTypesService"
 import VariationAttributeService from "@/features/variations/VariationAttributeService"
 import VariationService from "@/features/variations/VariationService"
+import { swrSettings } from "@/utils/swr/settings"
+import { apiRequest } from "@/utils/utils"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import useSWR from "swr"
+import ErrorPage from "../global/skeletons/ErrorPage"
 
 export function EditVariationModal({
-    variationObj
+    variationObj,
+    attributeTypes
 }: {
-    variationObj: VariationWithRelations
+    variationObj: VariationWithRelations,
+    attributeTypes: AttributeTypesWithAttributes[]
 }) {
     const [precioUnitario, setPrecioUnitario] = useState<number>(variationObj.precio_unitario)
     const [precioMayorista, setPrecioMayorista] = useState<number>(variationObj.precio_mayorista)
     const [stock, setStock] = useState<number>(variationObj.stock)
 
-    const [tiposConAtributos, setTiposConAtributos] = useState<AttributeTypesWithAttributes[]>([])
+    //const [tiposConAtributos, setTiposConAtributos] = useState<AttributeTypesWithAttributes[]>([])
 
     // Estado local para manejar las filas de atributos seleccionados
     const [rows, setRows] = useState<
@@ -40,9 +47,11 @@ export function EditVariationModal({
             precio_unitario: precioUnitario,
             stock: stock
         }
-        const variacionEditada = await VariationService.update(variationObj.id, variacionCuerpo)
+        //const variacionEditada = await VariationService.update(variationObj.id, variacionCuerpo)
+        const variacionEditada = await apiRequest({url: `products/${variationObj.producto_id}/variations/${variationObj.id}`, body: variacionCuerpo, method: 'PUT'})
+        // Datos editados mostrados en consola
         console.log("Datos de la variacion editada: ", variacionEditada)
-        rows.map(async (row)=>{
+        /*rows.map(async (row) => {
             const variacionAtributoTemp: Partial<VariationAttribute> = {
                 variacion_id: variationObj.id,
                 atributo_id: row.atributoId ?? 0
@@ -51,31 +60,11 @@ export function EditVariationModal({
             console.log("Datos del atributo de la variacion editada: ")
             console.log(variacionAtributoTemp)
 
-        })
-        toast("Se ha creado editado correctamente")
+        })*/
+        toast("Se ha editado correctamente")
     }
 
-    const findTipoIdFromAtributoId = (atributoId: number): number | null => {
-        for (const type of tiposConAtributos) {
-            if (type.atributos.some((attr) => attr.id === atributoId)) {
-                return type.id;
-            }
-        }
-        return null;
-    };
-
-    useEffect(() => {
-        if (variationObj.variaciones_atributos.length > 0) {
-            const initialRows = variationObj.variaciones_atributos.map((attr) => ({
-                id: attr.id,
-                tipoId: findTipoIdFromAtributoId(attr.atributo_id), // Obtener el tipo_id del atributo actual
-                atributoId: attr.atributo_id,
-            }));
-            setRows(initialRows);
-        }
-    }, [tiposConAtributos]);
-
-    // Actualizar el valor de la fila cuando cambia el desplegable
+        // Actualizar el valor de la fila cuando cambia el desplegable
     const handleRowChange = (index: number, tipoId: number | null, atributoId: number | null) => {
         setRows((prevRows) =>
             prevRows.map((row, i) =>
@@ -84,13 +73,28 @@ export function EditVariationModal({
         );
     };
 
-    useEffect(() => {
-        async function cargarTipos() {
-            const tiposConAtributos = await AttributeTypesService.getAllWithAttributes()
-            setTiposConAtributos(tiposConAtributos)
+    function findTipoIdFromAtributoId (atributoId: number): number | null {
+        if(attributeTypes){
+            for (const type of attributeTypes) {
+                if (type.atributos.some((attr) => attr.id === atributoId)) {
+                    return type.id;
+                }
+            }
         }
-        cargarTipos()
-    }, []);
+        return null;
+    };
+
+    useEffect(() => {
+        if (variationObj.variaciones_atributos.length > 0 && attributeTypes) {
+            const initialRows = variationObj.variaciones_atributos.map((attr) => ({
+                id: attr.id,
+                tipoId: findTipoIdFromAtributoId(attr.atributo_id), // Obtener el tipo_id del atributo actual
+                atributoId: attr.atributo_id,
+            }));
+            setRows(initialRows);
+        }
+    }, [attributeTypes]);
+
     return (
         <Dialog >
             <DialogTrigger asChild>
@@ -117,7 +121,7 @@ export function EditVariationModal({
                                     <SelectValue placeholder="Selecciona Tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {tiposConAtributos.map((type) => (
+                                    {attributeTypes.map((type) => (
                                         <SelectItem key={type.id} value={type.id.toString()}>
                                             {type.nombre}
                                         </SelectItem>
@@ -136,7 +140,7 @@ export function EditVariationModal({
                                     <SelectValue placeholder="Selecciona Atributo" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {tiposConAtributos
+                                    {attributeTypes
                                         .find((type) => type.id === row.tipoId)
                                         ?.atributos.map((attr) => (
                                             <SelectItem key={attr.id} value={attr.id.toString()}>

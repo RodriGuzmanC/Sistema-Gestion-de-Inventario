@@ -15,6 +15,7 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import ProductService from "@/features/products/ProductService"
 import { toast } from "sonner"
+import { apiRequest } from "@/utils/utils"
 
 interface Props {
   product: ProductWithBasicRelations,
@@ -25,9 +26,20 @@ export function ProductCard({ product }: Props) {
 
   async function eliminarProducto(id: number) {
     try {
-      /*const productoEliminado = await ProductService.delete(id)
-      console.log("Producto eliminado")
-      console.log(productoEliminado)*/
+      //const productoEliminado = await ProductService.delete(id)
+      const res: DataResponse<Product> = await apiRequest({
+        url: `/api/products/${id}`, 
+        method: 'DELETE'
+      });
+
+      if (res.error) {
+        console.error("Ha ocurrido un error al eliminar el producto", res.error)
+        toast("Ha ocurrido un error")
+        return
+      }
+      
+      console.log("Producto eliminado: ")
+      console.log(res.data)
 
       toast("El producto ha sido eliminado correctamente")
       setOpenDeleteModal(false);

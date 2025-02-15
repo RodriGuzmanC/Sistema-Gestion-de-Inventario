@@ -16,6 +16,8 @@ import { toast } from 'sonner';
 import useSWR from 'swr'
 import SharedFormSkeleton from '../global/skeletons/SharedFormSkeleton';
 import ErrorPage from '../global/skeletons/ErrorPage';
+import { apiRequest } from '@/utils/utils';
+import { swrSettings } from '@/utils/swr/settings';
 
 export function CreateProductForm() {
   const router = useRouter()
@@ -39,8 +41,14 @@ export function CreateProductForm() {
         precio_mayorista: wholesalePrice,
         precio_unitario: unitPrice,
       }
-      const productoNuevo = await ProductService.create(producto)
-      console.log(`producto nuevo: ${productoNuevo}`)
+
+      // Peticion para crear un nuevo registro
+      const {data: productoNuevo, error}: DataResponse<Product> = await apiRequest({ url: 'products', method: 'POST', body: producto })
+      if (error){
+        throw new Error(error)
+      }
+      
+      console.log('producto nuevo: ', productoNuevo.id)
       // Prepara los datos para crear las categorías del producto
       const categoriasProducto: Partial<CategoryProduct>[] = selectedCategories.map((selectedCategory) => ({
         producto_id: productoNuevo.id,
@@ -48,7 +56,7 @@ export function CreateProductForm() {
       }));
 
       const categoriasNuevas = await CategoryProductService.createMultiple(categoriasProducto);
-      console.log(`categorias nuevas: ${categoriasNuevas}`)
+      console.log('categorias nuevas: ', categoriasNuevas)
 
       toast("Se ha creado exitosamente")
       router.push(`${productoNuevo.id}/variaciones/crear`)
@@ -73,11 +81,7 @@ export function CreateProductForm() {
     cargarCategorias()
   }, [])*/
 
-  const { data: categories, error, isLoading } = useSWR('productos/crear', () => CategoryService.getAll(), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false
-  })
+  const { data: categories, error, isLoading } = useSWR<PaginatedResponse<Category>>('categories', () => apiRequest({url: 'categories'}), swrSettings)
 
   if (error) return <ErrorPage></ErrorPage>
   if (isLoading || categories == undefined) return <SharedFormSkeleton></SharedFormSkeleton>
@@ -140,7 +144,7 @@ export function CreateProductForm() {
           <div>
             <Label>Elige la categoria a la que pertenece esta prenda</Label>
             <div className="mt-2 space-y-2">
-              {categories.map((category: Category) => (
+              {categories.data.map((category: Category) => (
                 <div key={category.id} className="flex items-center space-x-2">
                   <Checkbox id={category.id.toString()} name="categories" value={category.id} />
                   <Label htmlFor={category.id.toString()}>{category.nombre}</Label>
