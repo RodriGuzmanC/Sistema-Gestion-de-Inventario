@@ -12,6 +12,10 @@ export default new class AttibuteTypesService {
 
     async getAllWithAttributes(page: number = 1, itemsPerPage: number = 10): Promise<PaginatedResponse<AttributeTypesWithAttributes>> {
         try {
+            // Validar los parámetros de paginación
+            if (page <= 0 || itemsPerPage <= 0) {
+                throw new Error("Parámetros de paginación inválidos");
+            }
             return await AttributeTypesRepository.getAttributeTypesWithAttributes(page, itemsPerPage);
         } catch (error: any) {
             console.error('Error in AttributeService:', error.message);
