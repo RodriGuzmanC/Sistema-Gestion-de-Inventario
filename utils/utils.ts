@@ -113,11 +113,11 @@ export const enlazarNombreDeProductoConAtributos = (item: OrderDetailWithFullRel
 }
 
 
-
+type ValidMethods = 'GET' | 'POST' | 'PUT' |  'DELETE'
 
 export async function apiRequest (
   {url, method = 'GET', body = null, headers = {}} : 
-  {url: string, method?: string, body?: any, headers?: any}) {
+  {url: string, method?: ValidMethods, body?: any, headers?: any}) {
   // Configuración de cabeceras por defecto
   const defaultHeaders = {
     'Content-Type': 'application/json',
@@ -131,8 +131,7 @@ export async function apiRequest (
     switch (method) {
       case 'POST':
       case 'PUT':
-      case 'PATCH':
-        // Para POST, PUT o PATCH, agregamos el body
+        // Para POST o PUT, agregamos el body
         if (body) {
           requestBody = JSON.stringify(body);
         }
