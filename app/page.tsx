@@ -1,131 +1,117 @@
 'use client'
-import Image from "next/image";
-import AttributeTypesService from "@/features/attributes/AttributeTypesService";
-import { useEffect, useState } from "react";
-import AttributeService from "@/features/attributes/AttributeService";
-import UpdateAttributeForm from "./components/attribute/FormularioEdicion";
-import AttributeTypesRepository from "@/data/respositories/AttributeTypesRepository";
-import ProductService from "@/features/products/ProductService";
 
+import { useState } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Mail, Moon, Sun } from 'lucide-react'
+import createSupabaseClient from '@/utils/dbClient'
+import { signInWithGoogle } from '@/utils/auth/actions'
+import { OneTapGoogle } from './components/OneTapGoogle'
+
+
+
+
+export default function ModernLogin() {
+
+  const [isDark, setIsDark] = useState(false)
+
+  async function logIn(){
+    const supabase = createSupabaseClient()
   
+    const res = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${location.origin}/auth/callback`,
+      },
+    });
+    
+  }
 
-export default function Home() {
-  const [attributes, setAttributes] = useState<Attribute[]>([])
-  useEffect(() => {
-    // Función async dentro del useEffect
-    const handler = async () => {
-      try {
-        const attributes = await ProductService.getAll();
-        console.log(attributes); // Verifica los productos obtenidos
-        //setAttributes(attributes); // Llamamos a la función async
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
-    handler()
-  }, []);
+  const handleLogin = async () => {
+    const response = await signInWithGoogle();
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        {attributes.map((attribute: Attribute)=>(
-          <div>
-            El valor del atributo es: {attribute.tipo_atributo_id}
+    <div className={`min-h-screen w-full flex items-center justify-center p-4 transition-colors ${isDark ? 'dark bg-gray-950' : 'bg-gray-50'}`}>
+      <div className="absolute top-4 right-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsDark(!isDark)}
+          className="rounded-full"
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </Button>
+      </div>
+      
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Bienvenido de nuevo</CardTitle>
+          <CardDescription>
+            Ingresa tus credenciales para acceder a tu cuenta
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" className="w-full" onClick={logIn}>
+                <Mail className="mr-2 h-4 w-4" />
+                Google
+              </Button>
+              {/*<OneTapGoogle></OneTapGoogle>*/}
+              
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  O continúa con
+                </span>
+              </div>
+            </div>
           </div>
-        ))}
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+          <div className="space-y-2">
+            <Label htmlFor="email">Correo electrónico</Label>
+            <Input
+              id="email"
+              placeholder="m@ejemplo.com"
+              type="email"
+              autoComplete="email"
+              required
+              className="transition-all duration-200 focus:scale-[1.01]"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-        <UpdateAttributeForm></UpdateAttributeForm>
-
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Contraseña</Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              className="transition-all duration-200 focus:scale-[1.01]"
+            />
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-4">
+          <Button className="w-full transition-all duration-200 hover:scale-[1.01]">
+            Iniciar sesión
+          </Button>
+          <p className="text-sm text-center text-muted-foreground">
+            ¿No tienes una cuenta?{' '}
+            <a 
+              href="#" 
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Regístrate
+            </a>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
-  );
+  )
 }
+
