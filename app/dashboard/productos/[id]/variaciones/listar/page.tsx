@@ -12,6 +12,7 @@ import useSWR from "swr"
 import ErrorPage from "@/app/components/global/skeletons/ErrorPage"
 import { Skeleton } from "@/components/ui/skeleton"
 import { EditVariationModal } from "@/app/components/variation/EditVariationModal"
+import DeleteVariationModal from "@/app/components/variation/DeleteVariationModal"
 
 type Params = {
     id: string
@@ -21,34 +22,19 @@ export default function VariationsList({ params }: { params: Params }) {
 
     const [filteredVariations, setFilteredVariations] = useState<VariationWithRelations[]>([])
 
-    const handleEdit = (id: string) => {
-        console.log("Edit variation:", id)
-        // Implement edit logic
-    }
-
-    const handleDelete = (id: string) => {
-        console.log("Delete variation:", id)
-        // Llamado a la api
-        try {
-            apiRequest({url: `products/1/variations/${id}`, method: 'DELETE'})
-            console.log("Se elimino bien")
-        } catch (error) {
-            console.log("No se elimino")
-        }        
-    }
-
     // Cargar producto
-    const { data: product, error, isLoading } = useSWR<DataResponse<ProductWithFullRelations>>('product', () => apiRequest({url: 'products/' + params.id}), swrSettings)
+    const { data: product, error, isLoading } = useSWR<DataResponse<ProductWithFullRelations>>('product', 
+        () => apiRequest({ url: 'products/' + params.id }), swrSettings)
 
-       // Actualizar filteredVariations cuando product cambie
-useEffect(() => {
-    if (product) {
-      setFilteredVariations(product.data.variaciones);  // Establecer las variaciones
-    }
-  }, [product]);  // Dependencia en "product"
-  
+    // Actualizar filteredVariations cuando product cambie
+    useEffect(() => {
+        if (product) {
+            setFilteredVariations(product.data.variaciones);  // Establecer las variaciones
+        }
+    }, [product]);  // Dependencia en "product"
+
     // Cargar tipos de atributos
-    const { data: attributeTypes, error: attributeTypesError, isLoading: attributeTypesLoading } = useSWR<PaginatedResponse<AttributeTypesWithAttributes>>('attribute-types', () => apiRequest({url: 'products/attributes-types/'}), swrSettings)
+    const { data: attributeTypes, error: attributeTypesError, isLoading: attributeTypesLoading } = useSWR<PaginatedResponse<AttributeTypesWithAttributes>>('attribute-types', () => apiRequest({ url: 'products/attributes-types/' }), swrSettings)
 
     // Si hay error, mostrar página de error    
     if (error || attributeTypesError) return (<ErrorPage />)
@@ -60,7 +46,7 @@ useEffect(() => {
     if (!product || !attributeTypes) return (<Skeleton />)
 
 
- 
+
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('es-PE', {
@@ -116,15 +102,14 @@ useEffect(() => {
                                 <TableCell>{variation.stock}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex flex-col justify-center gap-2">
-                                        <EditVariationModal variationObj={variation} attributeTypes={attributeTypes.data} key={variation.id} ></EditVariationModal>
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            className="text-destructive"
-                                            onClick={() => handleDelete(variation.id.toString())}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
+                                        <EditVariationModal
+                                            variationObj={variation}
+                                            attributeTypes={attributeTypes.data}
+                                            key={variation.id}></EditVariationModal>
+                                        <DeleteVariationModal
+                                            variationId={variation.id}
+                                            productId={variation.producto_id}
+                                        ></DeleteVariationModal>
                                     </div>
                                 </TableCell>
                             </TableRow>
