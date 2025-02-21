@@ -19,8 +19,10 @@ import { swrSettings } from "@/utils/swr/settings"
 import { apiRequest } from "@/utils/utils"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import useSWR from "swr"
+import useSWR, { useSWRConfig } from "swr"
 import ErrorPage from "../global/skeletons/ErrorPage"
+import { Plus, Trash2 } from "lucide-react"
+import DeleteAttributeVarModal from "./DeleteAttributeVarModal"
 
 export function EditVariationModal({
     variationObj,
@@ -33,38 +35,77 @@ export function EditVariationModal({
     const [precioMayorista, setPrecioMayorista] = useState<number>(variationObj.precio_mayorista)
     const [stock, setStock] = useState<number>(variationObj.stock)
 
-    //const [tiposConAtributos, setTiposConAtributos] = useState<AttributeTypesWithAttributes[]>([])
-
     // Estado local para manejar las filas de atributos seleccionados
     const [rows, setRows] = useState<
         { id: number; tipoId: number | null; atributoId: number | null }[]
     >([]);
 
+    // Estado para almacenar el estado inicial de las filas
+    const [initialRows, setInitialRows] = useState<
+        { id: number; tipoId: number | null; atributoId: number | null }[]
+    >([])
+
+    const { mutate } = useSWRConfig()
+
     async function guardarCambios() {
+        // Edita los campos de precios y stock de la variacion
         const variacionCuerpo: Partial<Variation> = {
             producto_id: variationObj.producto_id,
             precio_mayorista: precioMayorista,
             precio_unitario: precioUnitario,
             stock: stock
         }
-        //const variacionEditada = await VariationService.update(variationObj.id, variacionCuerpo)
-        const variacionEditada = await apiRequest({url: `products/${variationObj.producto_id}/variations/${variationObj.id}`, body: variacionCuerpo, method: 'PUT'})
-        // Datos editados mostrados en consola
-        console.log("Datos de la variacion editada: ", variacionEditada)
-        /*rows.map(async (row) => {
-            const variacionAtributoTemp: Partial<VariationAttribute> = {
-                variacion_id: variationObj.id,
-                atributo_id: row.atributoId ?? 0
-            }
-            const atributosDeVariacion = await VariationAttributeService.update(row.id, variacionAtributoTemp)
-            console.log("Datos del atributo de la variacion editada: ")
-            console.log(variacionAtributoTemp)
+        // Compara solo los campos relevantes
+        const cambiosDetectados =
+            variacionCuerpo.precio_mayorista !== variationObj.precio_mayorista ||
+            variacionCuerpo.precio_unitario !== variationObj.precio_unitario ||
+            variacionCuerpo.stock !== variationObj.stock;
+        
+        if (cambiosDetectados){
+            const variacionEditada = await apiRequest({ url: `products/${variationObj.producto_id}/variations/${variationObj.id}`, body: variacionCuerpo, method: 'PUT' })
+            // Datos editados mostrados en consola
+            console.log("Datos de la variacion editada: ", variacionEditada)
+        }
 
-        })*/
+        // Verifica las filas añadidas o modificadas
+        for (const row of rows) {
+            // Si el ID es 0, es una nueva fila
+            if (row.id === 0) {
+                // Crear nuevo atributo de variación
+                const variacionAtributoNueva: Partial<VariationAttribute> = {
+                    variacion_id: variationObj.id,
+                    atributo_id: row.atributoId ?? 0
+                }
+                const atributosDeVariacion = await apiRequest({ 
+                    url: `products/${variationObj.producto_id}/variations/${variationObj.id}/attributes`, 
+                    body: variacionAtributoNueva, 
+                    method: 'POST' 
+                })
+                console.log("Nuevo atributo de la variación añadida: ", atributosDeVariacion)
+            } else {
+                // Compara si hay cambios en la fila editada
+                const initialRow = initialRows.find((r) => r.id === row.id);
+                if (initialRow) {
+                    if (row.tipoId !== initialRow.tipoId || row.atributoId !== initialRow.atributoId) {
+                        const variacionAtributoEditada: Partial<VariationAttribute> = {
+                            variacion_id: variationObj.id,
+                            atributo_id: row.atributoId ?? 0
+                        }
+                        const atributosDeVariacion = await apiRequest({ 
+                            url: `products/${variationObj.producto_id}/variations/${variationObj.id}/attributes/${row.id}`, 
+                            body: variacionAtributoEditada, 
+                            method: 'PUT' 
+                        })
+                        console.log("Datos del atributo de la variacion editada: ", atributosDeVariacion)
+                    }
+                }
+            }
+        }
+        mutate('product')
         toast("Se ha editado correctamente")
     }
 
-        // Actualizar el valor de la fila cuando cambia el desplegable
+    // Actualizar el valor de la fila cuando cambia el desplegable
     const handleRowChange = (index: number, tipoId: number | null, atributoId: number | null) => {
         setRows((prevRows) =>
             prevRows.map((row, i) =>
@@ -73,8 +114,8 @@ export function EditVariationModal({
         );
     };
 
-    function findTipoIdFromAtributoId (atributoId: number): number | null {
-        if(attributeTypes){
+    function findTipoIdFromAtributoId(atributoId: number): number | null {
+        if (attributeTypes) {
             for (const type of attributeTypes) {
                 if (type.atributos.some((attr) => attr.id === atributoId)) {
                     return type.id;
@@ -84,14 +125,32 @@ export function EditVariationModal({
         return null;
     };
 
+    async function handleDelete(variatonAttributeID: number) {
+        const itemEliminado = await apiRequest({ url: `products/${variationObj.producto_id}/variations/${variationObj.id}/attributes/${variatonAttributeID}`, method: 'DELETE' })
+        console.log("Item eliminado")
+        console.log(itemEliminado)
+    }
+
+    function handleAddNewItem() {
+        const nuevasFilas = [...rows,
+        {
+            id: 0,
+            atributoId: 0,
+            tipoId: 0
+        }]
+        setRows(nuevasFilas)
+        console.log(rows)
+    }
+
     useEffect(() => {
         if (variationObj.variaciones_atributos.length > 0 && attributeTypes) {
-            const initialRows = variationObj.variaciones_atributos.map((attr) => ({
+            const initial = variationObj.variaciones_atributos.map((attr) => ({
                 id: attr.id,
                 tipoId: findTipoIdFromAtributoId(attr.atributo_id), // Obtener el tipo_id del atributo actual
                 atributoId: attr.atributo_id,
             }));
-            setRows(initialRows);
+            setRows(initial);
+            setInitialRows(initial)
         }
     }, [attributeTypes]);
 
@@ -100,7 +159,7 @@ export function EditVariationModal({
             <DialogTrigger asChild>
                 <Button variant="outline" >Editar variacion</Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle>Editar variacion</DialogTitle>
                     <DialogDescription>
@@ -149,8 +208,25 @@ export function EditVariationModal({
                                         ))}
                                 </SelectContent>
                             </Select>
+
+                            {/* Boton de eliminar */}
+                            
+                            <DeleteAttributeVarModal
+                                productId={variationObj.producto_id}
+                                variationId={variationObj.id}
+                                varAttributeId={row.id}
+                            ></DeleteAttributeVarModal>
                         </div>
                     ))}
+                    <Button
+                        variant={'outline'}
+                        size="icon"
+                        className="w-full"
+                        onClick={handleAddNewItem}
+                    >
+                        Agregar uno mas
+                        <Plus></Plus>
+                    </Button>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="precioUnitario" className="text-right">
                             Precio unitario
