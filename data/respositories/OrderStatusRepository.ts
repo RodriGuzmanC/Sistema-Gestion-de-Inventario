@@ -1,4 +1,6 @@
+import page from '@/app/dashboard/page';
 import createSupabaseClient from '@/utils/dbClient';
+import { makePagination } from '@/utils/serverUtils';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export default new class OrderStatusRepository {
@@ -9,7 +11,7 @@ export default new class OrderStatusRepository {
     }
 
     // Obtener todos los estados de pedido
-    async getOrderStatuses(): Promise<OrderStatus[]> {
+    async getOrderStatuses(page: number, itemsPerPage: number): Promise<PaginatedResponse<OrderStatus[]>> {
         const { data, error } = await this.client
             .from('estados_pedidos')
             .select('*');
@@ -18,11 +20,11 @@ export default new class OrderStatusRepository {
             console.error('Error fetching order statuses:', error);
             throw new Error('Unable to fetch order statuses');
         }
-        return data || [];
+        return makePagination<OrderStatus[]>(this.client, data, 'estados_pedidos', page, itemsPerPage);
     }
 
     // Obtener un estado de pedido específico por su ID
-    async getOrderStatus(id: number): Promise<OrderStatus | null> {
+    async getOrderStatus(id: number): Promise<DataResponse<OrderStatus>> {
         const { data, error } = await this.client
             .from('estados_pedidos')
             .select('*')
@@ -33,11 +35,14 @@ export default new class OrderStatusRepository {
             console.error('Error fetching order status:', error);
             throw new Error('Unable to fetch order status');
         }
-        return data || null;
+        const res: DataResponse<OrderStatus> = {
+            data: data
+        }
+        return res
     }
 
     // Crear un nuevo estado de pedido
-    async createOrderStatus(orderStatus: Partial<OrderStatus>): Promise<OrderStatus> {
+    async createOrderStatus(orderStatus: Partial<OrderStatus>): Promise<DataResponse<OrderStatus>> {
         const { data, error } = await this.client
             .from('estados_pedidos')
             .insert(orderStatus)
@@ -51,11 +56,14 @@ export default new class OrderStatusRepository {
             console.error('No records found to create');
             throw new Error('No records found');
         }
-        return data[0]; 
+        const res: DataResponse<OrderStatus> = {
+            data: data[0]
+        }
+        return res
     }
 
     // Actualizar un estado de pedido existente
-    async updateOrderStatus(id: number, updates: Partial<OrderStatus>): Promise<OrderStatus> {
+    async updateOrderStatus(id: number, updates: Partial<OrderStatus>): Promise<DataResponse<OrderStatus>> {
         const { data, error } = await this.client
             .from('estados_pedidos')
             .update(updates)
@@ -70,19 +78,28 @@ export default new class OrderStatusRepository {
             console.error('No records found to update');
             throw new Error('No records found');
         }
-        return data[0];
+        const res: DataResponse<OrderStatus> = {
+            data: data[0]
+        }
+        return res
     }
 
     // Eliminar un estado de pedido por su ID
-    async deleteOrderStatus(id: number): Promise<void> {
-        const { error } = await this.client
+    async deleteOrderStatus(id: number): Promise<DataResponse<OrderStatus>> {
+        const { data, error } = await this.client
             .from('estados_pedidos')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .select();
 
         if (error) {
             console.error('Error deleting order status:', error);
             throw new Error('Unable to delete order status');
         }
+
+        const res: DataResponse<OrderStatus> = {
+            data: data[0]
+        }
+        return res
     }
 }

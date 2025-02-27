@@ -10,7 +10,7 @@ export default new class DeliveryMethodRepository {
         this.client = createSupabaseClient();
     }
 
-    async getDeliveryMethods(page: number, itemsPerPage: number): Promise<PaginatedResponse<DeliveryMethod>> {
+    async getDeliveryMethods(page: number, itemsPerPage: number): Promise<PaginatedResponse<DeliveryMethod[]>> {
         // Calcular los índices de paginación
         const startIndex = (page - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage - 1;
@@ -24,7 +24,7 @@ export default new class DeliveryMethodRepository {
             console.error('Error fetching delivery methods:', error);
             throw new Error('Unable to fetch delivery methods');
         }
-        return makePagination<DeliveryMethod>(this.client, data, 'metodos_entregas', page, itemsPerPage)
+        return makePagination<DeliveryMethod[]>(this.client, data, 'metodos_entregas', page, itemsPerPage)
     }
 
     async getDeliveryMethod(id: number): Promise<DataResponse<DeliveryMethod>> {
