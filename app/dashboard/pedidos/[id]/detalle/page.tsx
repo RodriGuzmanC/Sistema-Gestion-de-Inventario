@@ -1,13 +1,14 @@
 'use client'
 
+import ErrorPage from "@/app/components/global/skeletons/ErrorPage"
+import OrderCardSkeleton from "@/app/components/skeletons/OrderSkeleton"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import OrderService from "@/features/orders/OrderService"
-import { calcularStockTotal, calcularSubTotal, formatearFechaLarga } from "@/utils/utils"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import Image from "next/image"
+import { swrSettings } from "@/utils/swr/settings"
+import { apiRequest, calcularStockTotal, calcularSubTotal, formatearFechaLarga } from "@/utils/utils"
 import { useEffect, useState } from "react"
+import useSWR from "swr"
 
 type Param = {
     id: string
@@ -16,32 +17,26 @@ type Param = {
 export default function OrderDetail({params} : {params: Param}) {
 
 
-  const [pedidoActual, setPedidoActual] = useState<OrderWithFullRelations>()
-  useEffect(()=>{
-    async function cargarPedido(){
-        const pedido = await OrderService.getOne(parseInt(params.id))
-        console.log("PedidoActual")
-        console.log(pedido)
-        if (!pedido) {
-            console.error("Pedido no encontrado");
-            return;
-          }
-        setPedidoActual(pedido)
-    }
-    cargarPedido()
-  }, [])
+  // Hook SWR para obtener los estados de las órdenes
+  const { data: order, error, isLoading } = useSWR<DataResponse<OrderWithFullRelations>>('order-detail', () => apiRequest({url: `orders/${params.id}`}), swrSettings)
 
-  if (!pedidoActual) return <div>Pedido no se ha cargado</div>;
-      if (!params?.id) {
-        return <div>Parámetro ID no encontrado</div>;
-      }
+    // Manejo de errores
+    if (error) {
+      return <ErrorPage />;
+    }
+  
+    // Manejo de carga
+    if (isLoading || !order) {
+      return <OrderCardSkeleton key={1}/>
+    }
+  
   return (
     <div className="container max-w-2xl mx-auto p-0 space-y-6">
       {/* Encabezado del pedido */}
       <Card>
         <CardHeader>
           <CardTitle className="text-xl font-semibold">
-            Pedido #{pedidoActual?.id}
+            Pedido #{order.data.id}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -49,13 +44,13 @@ export default function OrderDetail({params} : {params: Param}) {
             <div>
               <p className="text-muted-foreground">Fecha de Pedido</p>
               <p className="font-medium">
-                {formatearFechaLarga(pedidoActual.fecha_pedido)}
+                {formatearFechaLarga(order.data.fecha_pedido)}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground">Fecha de Entrega</p>
               <p className="font-medium">
-                {formatearFechaLarga(pedidoActual.fecha_entrega)}
+                {formatearFechaLarga(order.data.fecha_entrega)}
               </p>
             </div>
           </div>
@@ -68,7 +63,7 @@ export default function OrderDetail({params} : {params: Param}) {
           <CardTitle className="text-lg">Productos</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {pedidoActual?.detalles_pedidos.map((detalleIndividual) => (
+          {order.data.detalles_pedidos.map((detalleIndividual) => (
             <div key={detalleIndividual.id} className="space-y-4">
               <div className="flex gap-4">
                 <div className="relative h-24 w-24 flex-shrink-0">
@@ -109,7 +104,7 @@ export default function OrderDetail({params} : {params: Param}) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Cantidad:</span>
-              <span>{calcularStockTotal(pedidoActual?.detalles_pedidos ?? [])}</span>
+              <span>{calcularStockTotal(order.data.detalles_pedidos ?? [])}</span>
             </div>
             {/*pedidoActual.precio_rebajado && (
               <div className="flex justify-between text-sm text-primary">
@@ -127,7 +122,7 @@ export default function OrderDetail({params} : {params: Param}) {
             <div className="flex justify-between font-medium">
               <span>Total</span>
               <span>
-                S/{calcularSubTotal(pedidoActual?.detalles_pedidos ?? [])}
+                S/{calcularSubTotal(order.data.detalles_pedidos ?? [])}
               </span>
             </div>
           </div>

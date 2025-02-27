@@ -33,6 +33,11 @@ import { z, ZodReadonly } from 'zod'
 import { error } from 'console'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod';
+import useSWR, { useSWRConfig } from 'swr'
+import { swrSettings } from '@/utils/swr/settings'
+import { apiRequest } from '@/utils/utils'
+import ErrorPage from '@/app/components/global/skeletons/ErrorPage'
+import OrderCardSkeleton from '@/app/components/skeletons/OrderSkeleton'
 
 
 export interface OrderFormData {
@@ -108,12 +113,12 @@ export default function CreateOrder() {
 
             console.log('Form Data:', formData)
             // Crea el pedido
-            const nuevoPedido = await OrderService.create(formData)
+            const nuevoPedido: DataResponse<Order> = await apiRequest({ url: 'orders', method: 'POST', body: formData })
             console.log("Nuevo pedido")
             console.log(nuevoPedido)
             toast("Se ha creado con exito")
             // Navigate to next page
-            router.push(`crear/${nuevoPedido.id}/detalle/crear`)
+            router.push(`crear/${nuevoPedido.data.id}/detalle/crear`)
         } catch (error) {
             if (error instanceof z.ZodError) {
                 setFormErrors(error.format());
@@ -124,35 +129,19 @@ export default function CreateOrder() {
         }
     }
 
-    const [deliveryMethods, setDeliveryMethods] = useState<DeliveryMethod[]>([])
-    const [orderStatuses, setOrderStatuses] = useState<OrderStatus[]>([])
-    const [clients, setClients] = useState<Client[]>([])
-    const [loading, setLoading] = useState<boolean>(true)
-
     const [nombreClienteNuevo, setNombreClienteNuevo] = useState<string>()
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
 
-    useEffect(() => {
-        async function cargar() {
-            const deliveryMethods = await DeliveryService.getAll()
-            setDeliveryMethods(deliveryMethods)
-            const orderStatuses = await OrderStatusService.getAll()
-            setOrderStatuses(orderStatuses)
-            const clientes = await ClientService.getAll()
-            setClients(clientes)
-            setLoading(false)
-        }
-        cargar()
-    }, [])
+    const { mutate } = useSWRConfig()
 
     async function crearCliente() {
         try {
             const cuerpoCliente: Partial<Client> = {
                 nombre: nombreClienteNuevo
             }
-            const nuevoCliente = await ClientService.create(cuerpoCliente)
+            const nuevoCliente = await apiRequest({ url: 'clients', method: 'POST', body: cuerpoCliente })
             toast("Se ha creado el cliente con exito")
-            setClients([...clients, nuevoCliente])
+            mutate('clients')
             setIsDialogOpen(false)
         } catch (error) {
             toast("Ha ocurrido un error, intentalo mas tarde")
@@ -172,12 +161,32 @@ export default function CreateOrder() {
     const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data)
 
 
-    if (loading) {
-        return (<SharedFormSkeleton />);
+
+
+    // Hook SWR para obtener los estados de las órdenes
+    const { data: clients, error: clientsError, isLoading: clientsLoading } = useSWR<PaginatedResponse<Client>>('clients', () => apiRequest({ url: 'clients' }), swrSettings)
+
+    // Hook SWR para obtener los estados de las órdenes
+    const { data: orderStatuses, error: orderStatusesError, isLoading: isLoadingOrderStatuses } = useSWR<PaginatedResponse<OrderStatus>>('order-statuses', () => apiRequest({ url: 'orders/order-statuses/' }), swrSettings)
+
+    // Hook SWR para obtener los métodos de entrega
+    const { data: deliveryMethods, error: deliveryMethodsError, isLoading: isLoadingDeliveryMethods } = useSWR<PaginatedResponse<DeliveryMethod>>('delivery-methods', () => apiRequest({ url: 'orders/delivery-methods/' }), swrSettings)
+
+    // Manejo de errores
+    if (orderStatusesError || deliveryMethodsError || clientsError) {
+        return <ErrorPage />;
     }
+
+    // Manejo de carga
+    if (isLoadingOrderStatuses || isLoadingDeliveryMethods || clientsLoading || !orderStatuses || !deliveryMethods || !clients) {
+        return <OrderCardSkeleton key={1} />
+    }
+
+
     return (
         <div className="max-w-md space-y-6">
-            <h1 className="text-2xl font-bold">Crear Pedido</h1>
+            <h1 className="text-2xl font-bold">Crear Corte</h1>
+            <p>Aqui puedes crear los nuevos pedidos de corte y confeccion de tu taller</p>
 
             <form onSubmit={handleSubmit(handleSubmitForm)}>
                 <div className="space-y-4">
@@ -193,7 +202,7 @@ export default function CreateOrder() {
                                             <SelectValue placeholder="Selecciona el cliente aqui" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {clients.map((client) => (
+                                            {clients.data.map((client) => (
                                                 <SelectItem key={client.id} value={client.id.toString()}>
                                                     {client.nombre}
                                                 </SelectItem>
@@ -253,7 +262,7 @@ export default function CreateOrder() {
                                         <SelectValue placeholder="Selecciona el estado aqui" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {orderStatuses.map((status) => (
+                                        {orderStatuses.data.map((status) => (
                                             <SelectItem key={status.id} value={status.id.toString()}>
                                                 {status.nombre}
                                             </SelectItem>
@@ -276,7 +285,7 @@ export default function CreateOrder() {
                                         <SelectValue placeholder="Selecciona el metodo aqui" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {deliveryMethods.map((method) => (
+                                        {deliveryMethods.data.map((method) => (
                                             <SelectItem key={method.id} value={method.id.toString()}>
                                                 {method.nombre}
                                             </SelectItem>

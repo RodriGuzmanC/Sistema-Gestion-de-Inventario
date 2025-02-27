@@ -1,26 +1,12 @@
 'use client'
-import { CalendarDays, Package, Truck } from 'lucide-react'
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import React, { useEffect, useState } from 'react'
-import OrderService from '@/features/orders/OrderService'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
 import OrderFilter from '@/app/components/order/FilterOrders'
-import OrderStatusService from '@/features/orders/OrderStatusService'
-import DeliveryService from '@/features/delivery/DeliveryService'
 import OrderCard from '@/app/components/order/OrderCard'
-import { CustomLoader } from '@/app/components/Loader'
 import OrderCardSkeleton from '@/app/components/skeletons/OrderSkeleton'
-import SharedFormSkeleton from '@/app/components/global/skeletons/SharedFormSkeleton'
 import ErrorPage from '@/app/components/global/skeletons/ErrorPage'
 import useSWR from 'swr'
+import { swrSettings } from '@/utils/swr/settings'
+import { apiRequest } from '@/utils/utils'
 
 
 
@@ -29,32 +15,19 @@ export default function OrdersList() {
 
   
   // Hook SWR para obtener pedidos
-  const { data: orders, error: ordersError, isLoading: isLoadingOrders,  } = useSWR('pedidos', () => 
-    OrderService.getAll(), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false
-  })
+  const { data: orders, error: ordersError, isLoading: isLoadingOrders,  } = useSWR<PaginatedResponse<OrderWithFullRelations>>('orders', () => apiRequest({url: 'orders'}), swrSettings)
 
   useEffect(() => {
     if (orders) {
-      setFilteredOrders(orders);
+      setFilteredOrders(orders.data);
     }
   }, [orders]);
 
   // Hook SWR para obtener los estados de las órdenes
-  const { data: orderStatuses, error: orderStatusesError, isLoading: isLoadingOrderStatuses } = useSWR('pedidos/orderStatuses', () => OrderStatusService.getAll(), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false
-  })
+  const { data: orderStatuses, error: orderStatusesError, isLoading: isLoadingOrderStatuses } = useSWR<PaginatedResponse<OrderStatus>>('order-statuses', () => apiRequest({url: 'orders/order-statuses/'}), swrSettings)
 
   // Hook SWR para obtener los métodos de entrega
-  const { data: deliveryMethods, error: deliveryMethodsError, isLoading: isLoadingDeliveryMethods } = useSWR('pedidos/deliveryMethods', () => DeliveryService.getAll(), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false
-  })
+  const { data: deliveryMethods, error: deliveryMethodsError, isLoading: isLoadingDeliveryMethods } = useSWR<PaginatedResponse<DeliveryMethod>>('delivery-methods', () => apiRequest({url: 'orders/delivery-methods/'}), swrSettings)
 
   // Manejo de errores
   if (ordersError || orderStatusesError || deliveryMethodsError) {
@@ -71,12 +44,12 @@ export default function OrdersList() {
   return (
     <div className="container mx-auto">
       <h1 className="text-2xl font-bold mb-2">Pedidos</h1>
-      <OrderFilter orders={orders} setOrders={setFilteredOrders} deliveryMethods={deliveryMethods} orderStatuses={orderStatuses} ></OrderFilter>
+      <OrderFilter orders={orders.data} setOrders={setFilteredOrders} deliveryMethods={deliveryMethods.data} orderStatuses={orderStatuses.data} ></OrderFilter>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Listado */}
 
         {filteredOrders.map((order) => (
-          <OrderCard order={order}></OrderCard>
+          <OrderCard key={order.id} order={order}></OrderCard>
         ))}
       </div>
     </div>

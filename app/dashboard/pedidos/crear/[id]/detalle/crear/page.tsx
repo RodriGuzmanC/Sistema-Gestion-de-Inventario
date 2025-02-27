@@ -12,13 +12,17 @@ import AttributeTypesService from '@/features/attributes/AttributeTypesService'
 import VariationAttributeService from '@/features/variations/VariationAttributeService'
 import OrderService from '@/features/orders/OrderService'
 import OrderDetailService from '@/features/orders/OrderDetailService.'
-import { calcularStockTotal, calcularSubTotal } from '@/utils/utils'
+import { apiRequest, calcularStockTotal, calcularSubTotal } from '@/utils/utils'
 import FilteredVariationCard from '@/app/components/order/FilteredVariationCard'
 import SelectedOrderItemCard from '@/app/components/order/SelectedOrderItemCard'
 import OrderDetailsColumn from '@/app/components/order/OrderDetailColumn'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import VariationService from '@/features/variations/VariationService'
+import useSWR from 'swr'
+import { swrSettings } from '@/utils/swr/settings'
+import ErrorPage from '@/app/components/global/skeletons/ErrorPage'
+import OrderCardSkeleton from '@/app/components/skeletons/OrderSkeleton'
 
 interface ProductVariation {
     id: string
@@ -51,15 +55,15 @@ export default function OrderDetail({ params }: { params: Param }) {
 
     const [esMayorista, setEsMayorista] = useState<boolean>(true)
 
+    // Funcion para filtrar las variaciones por sus atributos
     const handleFilter = () => {
 
-        console.log("Los filtros elegidos:")
-        console.log(selectedValues)
-
         const valores = Object.values(selectedValues).map((valor) => parseInt(valor));
-        console.log(valores)
 
         // Buscamos las variaciones que coincidan con los atributos seleccionados
+        if (producto?.variaciones.length == 0){
+            return null
+        }
         const variacionesFiltradas = producto?.variaciones.filter((variacion) =>
             variacion.variaciones_atributos.some((variacionAtributo) =>
                 valores.includes(variacionAtributo.atributo_id)
@@ -170,13 +174,40 @@ export default function OrderDetail({ params }: { params: Param }) {
         if (!selectedProduct) return;
 
         async function obtenerProductoSeleccionado() {
-            const producto = await ProductService.getOne(parseInt(selectedProduct))
-            setProducto(producto)
+            const producto: DataResponse<ProductWithFullRelations> = await apiRequest({url: `products/${selectedProduct}`})
+            setProducto(producto.data)
         }
         obtenerProductoSeleccionado()
     }, [selectedProduct])
 
+    const { data: order, error: orderErr, isLoading: orderLoad } = useSWR<DataResponse<Order>>('order', () => apiRequest({url: `orders/${params.id}`}), swrSettings)
+    const { data: products, error: proError, isLoading: proLoad } = useSWR<PaginatedResponse<ProductWithBasicRelations>>('products', () => apiRequest({url: `products`}), swrSettings)
+    const { data: attributesTypes, error: catError, isLoading: catLoad } = useSWR<PaginatedResponse<AttributeTypesWithAttributes>>('attribute-types', () => apiRequest({url: `products/attributes-types`}), swrSettings)
+    
+    useEffect(() => {
+        if (order && !orderErr) {
+            setOrdenActual(order.data)
+            setEsMayorista(order.data.tipo_pedido)
+        }
+    }, [order, orderErr])
+    
+    useEffect(() => {
+        if (products && !proError) {
+            setProductos(products.data)
+        }
+    }, [products, proError])
+    
+    useEffect(() => {
+        if (attributesTypes && !catError) {
+            setAtributos(attributesTypes.data)
+        }
+    }, [attributesTypes, catError])
+    
+    // Condiciones para el renderizado:
+    if (orderLoad || proLoad || catLoad) return <OrderCardSkeleton />
+    if (orderErr || proError || catError) return <ErrorPage />
 
+    /*
     useEffect(() => {
         async function cargarPedidoPerteneciente() {
             const pedidoActual = await OrderService.getOne(parseInt(params.id))
@@ -196,7 +227,7 @@ export default function OrderDetail({ params }: { params: Param }) {
         cargarCategorias()
         cargarProductos()
         cargarPedidoPerteneciente()
-    }, [])
+    }, [])*/
 
     return (
         <div className="container mx-auto p-4">
@@ -260,7 +291,7 @@ export default function OrderDetail({ params }: { params: Param }) {
                         </Button>
                     </div>
 
-                    {filteredVariations.length > 0 && (
+                    {filteredVariations.length > 0 ? (
                         <div className="space-y-2">
                             <h2 className="text-lg font-semibold">Resultados de búsqueda</h2>
                             <p className="text-sm text-muted-foreground">Aqui apareceran las variaciones que existen</p>
@@ -270,6 +301,10 @@ export default function OrderDetail({ params }: { params: Param }) {
                                     <FilteredVariationCard variation={variation} addToOrder={addToOrder} />
                                 ))}
                             </div>
+                        </div>
+                    ) : (
+                        <div>
+                            Aun no se han encontrado resultados
                         </div>
                     )}
                 </div>

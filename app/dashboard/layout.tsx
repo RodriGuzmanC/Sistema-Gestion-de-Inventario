@@ -83,15 +83,15 @@ export default function Layout({ children }: LayoutProps) {
                 <SidebarMenuButton asChild>
                   <Link href="/dashboard/pedidos" className="group">
                     <ShoppingCart className="mr-2 size-4 transition-colors group-hover:text-primary" />
-                    <span>Pedidos</span>
+                    <div>Cortes</div>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/dashboard/usuarios" className="group">
-                    <Users className="mr-2 size-4 transition-colors group-hover:text-primary" />
-                    <span>Usuarios</span>
+                  <Link href="/dashboard/ventas" className="group">
+                    <ShoppingCart className="mr-2 size-4 transition-colors group-hover:text-primary" />
+                    <span>Ventas</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
