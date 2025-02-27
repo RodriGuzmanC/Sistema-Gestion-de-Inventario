@@ -5,7 +5,7 @@ import DeliveryMethodRepository from "@/data/respositories/DeliveryMethodReposit
 // Servicio
 export default new class DeliveryService {
     // Obtener todos los métodos de entrega
-    async getAll(page: number = 1, itemsPerPage: number = 10): Promise<PaginatedResponse<DeliveryMethod>> {
+    async getAll(page: number = 1, itemsPerPage: number = 10): Promise<PaginatedResponse<DeliveryMethod[]>> {
         try {
             return await DeliveryMethodRepository.getDeliveryMethods(page, itemsPerPage); // Llamamos al repositorio para obtener los métodos de entrega
         } catch (error: any) {
