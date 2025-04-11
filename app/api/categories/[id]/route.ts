@@ -1,6 +1,6 @@
 import CategoryService from '@/features/categories/CategoryService';
 import { handleError } from '@/utils/serverUtils';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export async function GET(
     request: Request,

@@ -10,49 +10,64 @@ import { apiRequest } from '@/utils/utils'
 
 
 
-export default function OrdersList() {
+export default function OrderList() {
   const [filteredOrders, setFilteredOrders] = useState<OrderWithBasicRelations[]>([])
 
-  
-  // Hook SWR para obtener pedidos
-  const { data: orders, error: ordersError, isLoading: isLoadingOrders,  } = useSWR<PaginatedResponse<OrderWithFullRelations>>('orders', () => apiRequest({url: 'orders'}), swrSettings)
+    // Hook SWR para obtener todas las solicitudes en paralelo
+    const { data, error, isLoading } = useSWR(
+        ['orders', 'order-statuses', 'delivery-methods'],
+        async () => {
+            const ordersPromise = apiRequest({ url: 'orders?category=entrada' });
+            const statusesPromise = apiRequest({ url: 'orders/order-statuses/' });
+            const deliveryMethodsPromise = apiRequest({ url: 'orders/delivery-methods/' });
 
-  useEffect(() => {
-    if (orders) {
-      setFilteredOrders(orders.data);
+            const [orders, statuses, deliveryMethods] = await Promise.all([ordersPromise, statusesPromise, deliveryMethodsPromise]);
+
+            return { 
+                orders: orders as PaginatedResponse<OrderWithBasicRelations>,
+                statuses: statuses as PaginatedResponse<OrderStatus>,
+                deliveryMethods: deliveryMethods as PaginatedResponse<DeliveryMethod>
+             };
+        },
+        swrSettings
+    );
+
+    useEffect(() => {
+        if (data && data.orders) {
+            setFilteredOrders(data.orders.data);
+        }
+    }, [data]);
+
+    // Manejo de errores
+    if (error) {
+        return <ErrorPage />;
     }
-  }, [orders]);
 
-  // Hook SWR para obtener los estados de las órdenes
-  const { data: orderStatuses, error: orderStatusesError, isLoading: isLoadingOrderStatuses } = useSWR<PaginatedResponse<OrderStatus>>('order-statuses', () => apiRequest({url: 'orders/order-statuses/'}), swrSettings)
+    // Manejo de carga
+    if (isLoading || !data) {
+        return <OrderCardSkeleton />;
+    }
 
-  // Hook SWR para obtener los métodos de entrega
-  const { data: deliveryMethods, error: deliveryMethodsError, isLoading: isLoadingDeliveryMethods } = useSWR<PaginatedResponse<DeliveryMethod>>('delivery-methods', () => apiRequest({url: 'orders/delivery-methods/'}), swrSettings)
-
-  // Manejo de errores
-  if (ordersError || orderStatusesError || deliveryMethodsError) {
-    return <ErrorPage />;
-  }
-
-  // Manejo de carga
-  if (isLoadingOrders || isLoadingOrderStatuses || isLoadingDeliveryMethods || !orders || !orderStatuses || !deliveryMethods) {
-    return <OrderCardSkeleton key={1}/>
-  }
-
-
-    
-  return (
-    <div className="container mx-auto">
-      <h1 className="text-2xl font-bold mb-2">Pedidos</h1>
-      <OrderFilter orders={orders.data} setOrders={setFilteredOrders} deliveryMethods={deliveryMethods.data} orderStatuses={orderStatuses.data} ></OrderFilter>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Listado */}
-
-        {filteredOrders.map((order) => (
-          <OrderCard key={order.id} order={order}></OrderCard>
-        ))}
-      </div>
-    </div>
-  )
+    return (
+        <div className="container mx-auto">
+            <h1 className="text-2xl font-bold mb-2">Aqui se encuentran los pedidos para producir prendas</h1>
+            <OrderFilter
+                orders={data.orders.data}
+                setOrders={setFilteredOrders}
+                deliveryMethods={data.deliveryMethods.data}
+                orderStatuses={data.statuses.data}
+                createLink='pedidos/crear'
+            />
+            <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+                {filteredOrders.length === 0 ? (
+                    <p className="text-center text-gray-500">No hay registros disponibles</p>
+                ) : (
+                    filteredOrders.map((order) => (
+                        <OrderCard key={order.id} order={order} />
+                    ))
+                )}
+            </div>
+        </div>
+    );
 }
 

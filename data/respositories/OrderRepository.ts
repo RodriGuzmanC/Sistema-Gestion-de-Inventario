@@ -10,7 +10,7 @@ export default new class OrderRepository {
     }
 
     // Obtener todos los pedidos
-    async getOrders(pages: number, itemsPerPage: number): Promise<PaginatedResponse<OrderWithFullRelations>> {
+    async getOrders(pages: number, itemsPerPage: number, category: string): Promise<PaginatedResponse<OrderWithFullRelations>> {
         // Calcular los índices de paginación
         const startIndex = (pages - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage - 1;
@@ -31,7 +31,8 @@ export default new class OrderRepository {
                 clientes(*), 
                 estados_pedidos(*), 
                 metodos_entregas(*)`)
-            .range(startIndex, endIndex); // Paginación
+            .range(startIndex, endIndex) // Paginación
+            .eq('categoria_pedido', category) // Solo pedidos de salida
 
 
         if (error) {

@@ -1,7 +1,7 @@
 import { SWRConfiguration } from 'swr';
 
 export const swrSettings: SWRConfiguration = {
-  revalidateIfStale: false,
+  revalidateIfStale: true,
   revalidateOnFocus: false,
   revalidateOnReconnect: false
 };

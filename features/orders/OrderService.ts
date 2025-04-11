@@ -47,14 +47,14 @@ const createSchema = z.object({
 
 export default new class OrderService {
     // Obtener todas las órdenes
-    async getAll(pages: number = 1, itemsPerPage: number = 10): Promise<PaginatedResponse<OrderWithFullRelations>> {
+    async getAll(pages: number = 1, itemsPerPage: number = 10, category: string): Promise<PaginatedResponse<OrderWithFullRelations>> {
         // Validar los parámetros de paginación
         if (pages <= 0 || itemsPerPage <= 0) {
             throw new Error("Parámetros de paginación inválidos");
         }
 
         try {
-            return await OrderRepository.getOrders(pages, itemsPerPage); // Llamamos al repositorio para obtener todas las órdenes.
+            return await OrderRepository.getOrders(pages, itemsPerPage, category); // Llamamos al repositorio para obtener todas las órdenes.
         } catch (error: any) {
             console.error('Error in OrderService:', error.message);
             throw new Error('No se obtuvieron las órdenes, intenta más tarde.');

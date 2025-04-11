@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CalendarIcon, ChevronDown, User } from 'lucide-react'
+import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 
 import { cn } from '@/lib/utils'
@@ -20,17 +20,13 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover'
-import DeliveryService from '@/features/delivery/DeliveryService'
-import OrderStatusService from '@/features/orders/OrderStatusService'
-import OrderService from '@/features/orders/OrderService'
+
 import { toast } from 'sonner'
-import SharedFormSkeleton from '@/app/components/global/skeletons/SharedFormSkeleton'
-import ClientService from '@/features/client/ClientService'
+
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { z, ZodReadonly } from 'zod'
-import { error } from 'console'
+import { z } from 'zod'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod';
 import useSWR, { useSWRConfig } from 'swr'
@@ -60,8 +56,7 @@ const validationSchema = z.object({
         .transform((val) => (val ? parseInt(val, 10) : undefined)),
 
     orderType: z
-        .string()
-        .refine((val) => val === "1" || val === "0", { message: "Selecciona un tipo" }),
+        .string(),
 
     orderDate: z
         .date()
@@ -90,12 +85,6 @@ type Inputs = {
 
 export default function CreateOrder() {
     const router = useRouter()
-    const [orderDate, setOrderDate] = useState<Date>()
-    const [deliveryDate, setDeliveryDate] = useState<Date>()
-    const [orderStatusId, setOrderStatusId] = useState<string>("")
-    const [deliveryMethodId, setDeliveryMethodId] = useState<string>("")
-    const [clientId, setClientId] = useState<string>("")
-    const [orderType, setOrderType] = useState<string>("")
 
     const [formErrors, setFormErrors] = useState<any>({});
 
@@ -105,7 +94,10 @@ export default function CreateOrder() {
             const formData: Partial<Order> = {
                 estado_pedido_id: parseInt(data.orderStatusId, 10),
                 metodo_entrega_id: parseInt(data.deliveryMethodId, 10),
-                tipo_pedido: data.orderType == '1' ? true : false,
+                tipo_pedido: data.orderType == "mayorista" || data.orderType == "minorista"
+                ? data.orderType
+                : "mayorista",
+                categoria_pedido: "entrada",
                 fecha_pedido: data.orderDate.toString(),
                 fecha_entrega: data.deliveryDate.toString(),
                 cliente_id: parseInt(data.clientId, 10)
@@ -139,7 +131,7 @@ export default function CreateOrder() {
             const cuerpoCliente: Partial<Client> = {
                 nombre: nombreClienteNuevo
             }
-            const nuevoCliente = await apiRequest({ url: 'clients', method: 'POST', body: cuerpoCliente })
+            const nuevoCliente: DataResponse<Client> = await apiRequest({ url: 'clients', method: 'POST', body: cuerpoCliente })
             toast("Se ha creado el cliente con exito")
             mutate('clients')
             setIsDialogOpen(false)
@@ -308,8 +300,8 @@ export default function CreateOrder() {
                                         <SelectValue placeholder="Selecciona el tipo aqui" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="1">Mayorista</SelectItem>
-                                        <SelectItem value="0">Minorista</SelectItem>
+                                        <SelectItem value="mayorista">Mayorista</SelectItem>
+                                        <SelectItem value="minorista">Minorista</SelectItem>
                                     </SelectContent>
                                 </Select>
                             )}
@@ -397,7 +389,6 @@ export default function CreateOrder() {
                     </Button>
                 </div>
             </form >
-            {JSON.stringify(watch(), null, 2)}
         </div >
     )
 }

@@ -20,13 +20,15 @@ interface OrderFilterProps {
   setOrders: (orders: OrderWithBasicRelations[]) => void
   orderStatuses: OrderStatus[]
   deliveryMethods: DeliveryMethod[]
+  createLink: string
 }
 
 export default function OrderFilter({ 
   orders, 
   setOrders,
   orderStatuses,
-  deliveryMethods 
+  deliveryMethods,
+  createLink
 }: OrderFilterProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
@@ -150,7 +152,7 @@ export default function OrderFilter({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Link href={'pedidos/crear'}>
+        <Link href={createLink}>
         <Button className="bg-primary">
           Crear +
         </Button>

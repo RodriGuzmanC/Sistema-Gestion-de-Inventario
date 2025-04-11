@@ -1,4 +1,5 @@
 import createSupabaseClient from '@/utils/dbClient';
+import { makePagination } from '@/utils/serverUtils';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export default new class OrderDetailRepository {
@@ -9,21 +10,27 @@ export default new class OrderDetailRepository {
     }
 
     // Obtener todos los detalles de pedido
-    async getOrderDetails(orderId: number): Promise<OrderDetail[]> {
+    async getOrdersDetailsByOrder(orderId: number, page: number, itemsPerPage: number): Promise<PaginatedResponse<OrderDetail>> {
+        // Calcular los índices de paginación
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage - 1;
+
         const { data, error } = await this.client
             .from('detalles_pedidos')
             .select('*')
-            .eq('pedido_id', orderId);
+            .eq('pedido_id', orderId)
+            .range(startIndex, endIndex);
+
 
         if (error) {
             console.error('Error fetching order details:', error);
             throw new Error('Unable to fetch order details');
         }
-        return data || [];
+        return makePagination<OrderDetail>(this.client, data, 'detalles_pedidos', page, itemsPerPage, 'pedido_id', orderId);
     }
 
     // Obtener un detalle de pedido específico por su ID
-    async getOrderDetail(id: number): Promise<OrderDetail | null> {
+    async getOrderDetail(id: number): Promise<DataResponse<OrderDetail>> {
         const { data, error } = await this.client
             .from('detalles_pedidos')
             .select('*')
@@ -34,11 +41,16 @@ export default new class OrderDetailRepository {
             console.error('Error fetching order detail:', error);
             throw new Error('Unable to fetch order detail');
         }
-        return data || null;
+
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<OrderDetail> = {
+            data: data || null,
+        }
+        return res;
     }
 
     // Crear un nuevo detalle de pedido
-    async createOrderDetail(orderDetail: Partial<OrderDetail>): Promise<OrderDetail> {
+    async createOrderDetail(orderDetail: Partial<OrderDetail>): Promise<DataResponse<OrderDetail>> {
         const { data, error } = await this.client
             .from('detalles_pedidos')
             .insert(orderDetail)
@@ -52,11 +64,15 @@ export default new class OrderDetailRepository {
             console.error('No records found to create');
             throw new Error('No records found');
         }
-        return data[0]; 
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<OrderDetail> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
     // Actualizar un detalle de pedido existente
-    async updateOrderDetail(id: number, updates: Partial<OrderDetail>): Promise<OrderDetail> {
+    async updateOrderDetail(id: number, updates: Partial<OrderDetail>): Promise<DataResponse<OrderDetail>> {
         const { data, error } = await this.client
             .from('detalles_pedidos')
             .update(updates)
@@ -71,19 +87,30 @@ export default new class OrderDetailRepository {
             console.error('No records found to update');
             throw new Error('No records found');
         }
-        return data[0];
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<OrderDetail> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
     // Eliminar un detalle de pedido por su ID
-    async deleteOrderDetail(id: number): Promise<void> {
-        const { error } = await this.client
+    async deleteOrderDetail(id: number): Promise<DataResponse<OrderDetail>> {
+        const { data, error } = await this.client
             .from('detalles_pedidos')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .select();
 
         if (error) {
             console.error('Error deleting order detail:', error);
             throw new Error('Unable to delete order detail');
         }
+
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<OrderDetail> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 }

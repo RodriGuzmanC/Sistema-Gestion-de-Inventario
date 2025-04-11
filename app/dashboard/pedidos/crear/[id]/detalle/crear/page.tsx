@@ -3,22 +3,11 @@
 import { useEffect, useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { MinusCircle, PlusCircle } from 'lucide-react'
-import ProductService from '@/features/products/ProductService'
-import CategoryService from '@/features/categories/CategoryService'
-import AttributeTypesService from '@/features/attributes/AttributeTypesService'
-import VariationAttributeService from '@/features/variations/VariationAttributeService'
-import OrderService from '@/features/orders/OrderService'
-import OrderDetailService from '@/features/orders/OrderDetailService.'
-import { apiRequest, calcularStockTotal, calcularSubTotal } from '@/utils/utils'
+import { apiRequest } from '@/utils/utils'
 import FilteredVariationCard from '@/app/components/order/FilteredVariationCard'
-import SelectedOrderItemCard from '@/app/components/order/SelectedOrderItemCard'
 import OrderDetailsColumn from '@/app/components/order/OrderDetailColumn'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import VariationService from '@/features/variations/VariationService'
 import useSWR from 'swr'
 import { swrSettings } from '@/utils/swr/settings'
 import ErrorPage from '@/app/components/global/skeletons/ErrorPage'
@@ -48,12 +37,10 @@ type Param = {
 
 export default function OrderDetail({ params }: { params: Param }) {
     const [selectedProduct, setSelectedProduct] = useState<string>('')
-    const [selectedSize, setSelectedSize] = useState<string>('')
-    const [selectedColor, setSelectedColor] = useState<string>('')
     const [filteredVariations, setFilteredVariations] = useState<VariationWithRelations[]>([])
     const [orderItems, setOrderItems] = useState<Partial<PrepareOrderDetail>[]>([])
 
-    const [esMayorista, setEsMayorista] = useState<boolean>(true)
+    const [esMayorista, setEsMayorista] = useState<Order['tipo_pedido']>('mayorista')
 
     // Funcion para filtrar las variaciones por sus atributos
     const handleFilter = () => {
@@ -85,7 +72,7 @@ export default function OrderDetail({ params }: { params: Param }) {
                 id: orderItems.length + 1,
                 pedido_id: parseInt(params.id),
                 cantidad: 1,
-                precio: esMayorista ? variation.precio_mayorista : variation.precio_unitario,
+                precio: esMayorista == 'mayorista' ? variation.precio_mayorista : variation.precio_unitario,
                 precio_rebajado: 0,
                 nombre_producto: producto?.nombre_producto ?? '',
                 variacion: variation
@@ -147,17 +134,18 @@ export default function OrderDetail({ params }: { params: Param }) {
                     precio_rebajado: order.precio_rebajado,
                     variacion_id: order.variacion?.id
                 }
-                const detallePedido = await OrderDetailService.create(ordenPreparada)
+                const detallePedido: DataResponse<OrderDetail> = await apiRequest({url: `orders/${ordenPreparada.pedido_id}/order-details`, method: 'POST', body: ordenPreparada})
+
                 console.log("Ordenes agregadas")
                 console.log(detallePedido)
-                // Restamos lo pedido a la variacion
+                // Sumamos lo pedido a la variacion
                 if (order.variacion == undefined) throw Error("La variacion no tiene stock")
                 if (order.cantidad == undefined) throw Error("Una de las variaciones en la orden tiene una cantidad invalida")
 
                 const cantidadActualizar: Partial<Variation> = {
-                    stock: order.variacion?.stock - order.cantidad
+                    stock: order.variacion?.stock + order.cantidad
                 }
-                const variacionActualizada = VariationService.update(detallePedido.variacion_id, cantidadActualizar)
+                const variacionActualizada = await apiRequest({url: `products/1/variations/${detallePedido.data.variacion_id}`, method: 'PUT', body: cantidadActualizar})
                 console.log("Nuevo stock de la variacion: ", variacionActualizada)
             })
             toast("Tu pedido ha sido creado correctamente")
@@ -206,28 +194,6 @@ export default function OrderDetail({ params }: { params: Param }) {
     // Condiciones para el renderizado:
     if (orderLoad || proLoad || catLoad) return <OrderCardSkeleton />
     if (orderErr || proError || catError) return <ErrorPage />
-
-    /*
-    useEffect(() => {
-        async function cargarPedidoPerteneciente() {
-            const pedidoActual = await OrderService.getOne(parseInt(params.id))
-            if (!pedidoActual) return (<div>Error</div>)
-            setOrdenActual(pedidoActual)
-            // Si el pedido es mayorista devolvera true, si no False
-            setEsMayorista(pedidoActual.tipo_pedido)
-        }
-        async function cargarProductos() {
-            const productos = await ProductService.getAll()
-            setProductos(productos)
-        }
-        async function cargarCategorias() {
-            const atributos = await AttributeTypesService.getAllWithAttributes()
-            setAtributos(atributos)
-        }
-        cargarCategorias()
-        cargarProductos()
-        cargarPedidoPerteneciente()
-    }, [])*/
 
     return (
         <div className="container mx-auto p-4">
@@ -292,7 +258,7 @@ export default function OrderDetail({ params }: { params: Param }) {
                     </div>
 
                     {filteredVariations.length > 0 ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2" key={filteredVariations[0].id}>
                             <h2 className="text-lg font-semibold">Resultados de búsqueda</h2>
                             <p className="text-sm text-muted-foreground">Aqui apareceran las variaciones que existen</p>
                             <div className="grid gap-4">

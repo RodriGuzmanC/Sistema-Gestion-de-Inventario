@@ -40,7 +40,7 @@ export default new class AttributeTypesRepository {
     }
 
 
-    async getAttributeType(id: number): Promise<AttributeType | null> {
+    async getAttributeType(id: number): Promise<DataResponse<AttributeType>> {
         const { data, error } = await this.client
             .from('tipos_atributos')
             .select('*')
@@ -51,7 +51,11 @@ export default new class AttributeTypesRepository {
             console.error('Error fetching attributes types:', error);
             throw new Error('Unable to fetch attributes types');
         }
-        return data || null;
+        // Lo envolvemos en un DataResponse
+        const res: DataResponse<AttributeType> = {
+            data: data[0] || null,
+        }
+        return res;
     }
 
     async createAttributeType(attributeType: Partial<AttributeType>): Promise<DataResponse<AttributeType>> {

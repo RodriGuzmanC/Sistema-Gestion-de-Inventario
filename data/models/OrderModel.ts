@@ -6,7 +6,8 @@ interface Order {
   usuario_id: number;
   estado_pedido_id: number;
   metodo_entrega_id: number;
-  tipo_pedido: boolean;
+  categoria_pedido: 'entrada' | 'salida';
+  tipo_pedido: 'mayorista' | 'minorista';
   fecha_creacion?: string;
   cliente_id: number;
 }

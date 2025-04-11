@@ -9,20 +9,32 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import ProductService from '@/features/products/ProductService'
-import CategoryService from '@/features/categories/CategoryService'
-import CategoryProductService from '@/features/products/CategoryProductService'
 import { toast } from 'sonner';
 import useSWR from 'swr'
 import SharedFormSkeleton from '../global/skeletons/SharedFormSkeleton';
 import ErrorPage from '../global/skeletons/ErrorPage';
 import { apiRequest } from '@/utils/utils';
 import { swrSettings } from '@/utils/swr/settings';
+import ImageUploadModal from './ImageUploadWidget';
 
 export function CreateProductForm() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const handleOpenModal = (): void => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = (): void => {
+    setIsModalOpen(false);
+  };
+
+  const handleImageUploaded = (url: string): void => {
+    setUrlUploadedImage(url);
+    console.log('Imagen cargada:', url);
+  };
 
   async function handleSubmit(formData: FormData) {
     try {
@@ -40,14 +52,15 @@ export function CreateProductForm() {
         estado_producto_id: 1,
         precio_mayorista: wholesalePrice,
         precio_unitario: unitPrice,
+        url_imagen: urlUploadedImage ?? '',
       }
 
       // Peticion para crear un nuevo registro
-      const {data: productoNuevo, error}: DataResponse<Product> = await apiRequest({ url: 'products', method: 'POST', body: producto })
-      if (error){
+      const { data: productoNuevo, error }: DataResponse<Product> = await apiRequest({ url: 'products', method: 'POST', body: producto })
+      if (error) {
         throw new Error(error)
       }
-      
+
       console.log('producto nuevo: ', productoNuevo.id)
       // Prepara los datos para crear las categorías del producto
       const categoriasProducto: Partial<CategoryProduct>[] = selectedCategories.map((selectedCategory) => ({
@@ -55,8 +68,13 @@ export function CreateProductForm() {
         categoria_id: parseInt(selectedCategory, 10),
       }));
 
-      const categoriasNuevas = await CategoryProductService.createMultiple(categoriasProducto);
-      console.log('categorias nuevas: ', categoriasNuevas)
+      const nuevosElementos = await Promise.all(categoriasProducto.map(async (categoria) => {
+        const { data, error } = await apiRequest({ url: `products/${productoNuevo.id}/categories`, method: 'POST', body: categoria })
+        console.log('categoria nueva: ', data)
+        if (error) {
+          throw new Error(error)
+        }
+      }))
 
       toast("Se ha creado exitosamente")
       router.push(`${productoNuevo.id}/variaciones/crear`)
@@ -72,16 +90,7 @@ export function CreateProductForm() {
 
   const [urlUploadedImage, setUrlUploadedImage] = useState<string | null>(null);
 
-  /*useEffect(() => {
-    async function cargarCategorias() {
-      const data = await CategoryService.getAll()
-      setCategories(data)
-    }
-
-    cargarCategorias()
-  }, [])*/
-
-  const { data: categories, error, isLoading } = useSWR<PaginatedResponse<Category>>('categories', () => apiRequest({url: 'categories'}), swrSettings)
+  const { data: categories, error, isLoading } = useSWR<PaginatedResponse<Category>>('categories', () => apiRequest({ url: 'categories' }), swrSettings)
 
   if (error) return <ErrorPage></ErrorPage>
   if (isLoading || categories == undefined) return <SharedFormSkeleton></SharedFormSkeleton>
@@ -102,8 +111,9 @@ export function CreateProductForm() {
             <Textarea id="description" name="description" required />
           </div>
 
+
           <div className='flex flex-col space-y-2'>
-            <Label>Sube una imagen</Label>
+            <button onClick={handleOpenModal}>Subir Imagen</button>
             {/*<div className="mt-2">*/}
             {urlUploadedImage ? (
               <img
@@ -114,7 +124,8 @@ export function CreateProductForm() {
                 style={{ objectFit: 'cover' }} // Puedes usar estilos para el tamaño y el ajuste de la imagen
               />
             ) : (
-              <CldUploadWidget
+              <div>
+                {/* <CldUploadWidget
                 uploadPreset="preset_alondra_md"
                 options={{
                   cloudName: 'daxgq3gzj',
@@ -132,12 +143,21 @@ export function CreateProductForm() {
                 }}>
                 {({ open }) => {
                   return (
-                    <Button variant={'default'} onClick={() => open()}>
+                    <Button variant={'default'} onClick={(e) => {
+                      e.preventDefault();
+                      () => open()
+                    }}>
                       Upload an Image
                     </Button>
                   );
                 }}
-              </CldUploadWidget>
+              </CldUploadWidget> */}
+                <ImageUploadModal
+                  isOpen={isModalOpen}
+                  onClose={handleCloseModal}
+                  onImageUploaded={handleImageUploaded}
+                />
+              </div>
             )}
           </div>
 

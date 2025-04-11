@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Edit2, Trash2 } from 'lucide-react'
 import { ProductDetailCard } from "@/app/components/product/ProductDetailCard"
 import FilterVariations from "@/app/components/variation/FilterVariations"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"

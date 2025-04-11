@@ -1,6 +1,6 @@
 "use client"
 
-import { Package, Users, Share2, ShoppingCart, ChevronDown, DownloadCloud, LogOut } from 'lucide-react'
+import { Package, ShoppingCart, ChevronDown, DownloadCloud, LogOut, ShoppingBag, Settings, Tag, Users } from 'lucide-react'
 
 import {
   Sidebar,
@@ -16,8 +16,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { SharedFilter } from '../components/SharedFilter'
-import { ProductCard } from '../components/product/ProductCard'
 import Link from 'next/link'
 import { Toaster } from '@/components/ui/sonner'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -50,6 +48,7 @@ export default function Layout({ children }: LayoutProps) {
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarHeader>
+
           <SidebarContent>
             <SidebarMenu>
               <Collapsible>
@@ -79,6 +78,34 @@ export default function Layout({ children }: LayoutProps) {
                   </CollapsibleContent>
                 </SidebarMenuItem>
               </Collapsible>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/dashboard/caracteristicas" className="group">
+                    <Settings className="mr-2 size-4 transition-colors group-hover:text-primary" />
+                    <span>Características</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/dashboard/categorias" className="group">
+                    <Tag className="mr-2 size-4 transition-colors group-hover:text-primary" />
+                    <span>Categorías</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/dashboard/clientes" className="group">
+                    <Users className="mr-2 size-4 transition-colors group-hover:text-primary" />
+                    <span>Clientes</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/dashboard/pedidos" className="group">
@@ -87,10 +114,11 @@ export default function Layout({ children }: LayoutProps) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/dashboard/ventas" className="group">
-                    <ShoppingCart className="mr-2 size-4 transition-colors group-hover:text-primary" />
+                    <ShoppingBag className="mr-2 size-4 transition-colors group-hover:text-primary" />
                     <span>Ventas</span>
                   </Link>
                 </SidebarMenuButton>
@@ -105,25 +133,23 @@ export default function Layout({ children }: LayoutProps) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              {/* Sección separada para el botón de cerrar sesión */}
-              <div className="mt-auto">
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <form>
-                      <Button
-                        formAction={signOut}
-                        className="w-full flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 rounded-lg py-2"
-                      >
-                        <LogOut className="mr-2 size-4" />
-                        <span>Cerrar sesión</span>
-                      </Button>
-                    </form>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+              {/* Botón cerrar sesión estilizado */}
+              <div className="mt-auto px-4 py-2">
+                <form>
+                  <Button
+                    formAction={signOut}
+                    className="w-full justify-start bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    variant="ghost"
+                  >
+                    <LogOut className="mr-2 size-4" />
+                    <span>Cerrar sesión</span>
+                  </Button>
+                </form>
               </div>
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>
+
         <SidebarInset>
           <header className="flex md:hidden h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <SidebarTrigger />
@@ -135,6 +161,6 @@ export default function Layout({ children }: LayoutProps) {
         </SidebarInset>
       </div>
     </SidebarProvider>
-  )
+  );
 }
 

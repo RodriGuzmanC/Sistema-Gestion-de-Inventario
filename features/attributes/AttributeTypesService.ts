@@ -23,7 +23,7 @@ export default new class AttibuteTypesService {
         }
     }
 
-    async getOne(id: number): Promise<AttributeType | null> {
+    async getOne(id: number): Promise<DataResponse<AttributeType>> {
         try {
 
             return await AttributeTypesRepository.getAttributeType(id);

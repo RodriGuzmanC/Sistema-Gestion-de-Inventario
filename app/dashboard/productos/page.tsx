@@ -4,30 +4,19 @@ import { ProductCard } from '@/app/components/product/ProductCard'
 import ProductFilter from '@/app/components/product/ProductFilter';
 import { ProductCardSkeleton } from '@/app/components/skeletons/ProductSkeleton';
 import ProductService from '@/features/products/ProductService';
+import { swrSettings } from '@/utils/swr/settings';
 import { apiRequest } from '@/utils/utils';
 import React, { Suspense, useEffect, useState } from 'react'
 import useSWR from 'swr';
 
-const productData = {
-  title: "Producto de ejemplo",
-  description: "Una descripción breve del producto que se muestra en la tarjeta.",
-  unitPrice: 10,
-  wholesalePrice: 12,
-  remaining: 6,
-  imageUrl: "/placeholder.svg"
-}
 
 export default function page() {
   const [filteredProducts, setFilteredProducts] = useState<ProductWithBasicRelations[]>([])
-  
-  const { data: products, error, isLoading } = useSWR<PaginatedResponse<ProductWithFullRelations>>
-  ('dashboard/productos', () => {
-    return apiRequest({ url: 'products', method: 'GET' });
-  }, {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false
-  });
+
+  const { data: products, error, isLoading } = useSWR<PaginatedResponse<ProductWithBasicRelations>>
+    ('products', () => {
+      return apiRequest({ url: 'products', method: 'GET' });
+    }, swrSettings);
 
   useEffect(() => {
     if (products) {
@@ -51,9 +40,9 @@ export default function page() {
       <h1 className='text-2xl font-bold'>Prendas</h1>
       <ProductFilter products={products.data} setProducts={setFilteredProducts}></ProductFilter>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3'>
-          {filteredProducts.map((producto: ProductWithBasicRelations) => (
-            <ProductCard product={producto} />
-          ))}
+        {products.data.map((producto: ProductWithBasicRelations) => (
+          <ProductCard product={producto} />
+        ))}
 
       </div>
     </div>

@@ -14,8 +14,14 @@ export async function GET(request: NextRequest) {
         const queryitems = searchParams.get('limit')
         const items = queryitems ? parseInt(queryitems) : 10
 
+        const cat = searchParams.get('category')
+
+        if(!cat) {
+            throw new Error("Category es requerido")
+        }
+
         // Busqueda de ordenes
-        const orders = await OrderService.getAll(pagina, items);
+        const orders = await OrderService.getAll(pagina, items, cat);
         // Retornar la respuesta
         return new Response(JSON.stringify(orders), { 
             status: 200, 

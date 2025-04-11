@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import Image from 'next/image'
+import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,11 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import AttributeTypesService from '@/features/attributes/AttributeTypesService'
-import AttributeService from '@/features/attributes/AttributeService'
-import VariationService from '@/features/variations/VariationService'
 import VariationAttributeService from '@/features/variations/VariationAttributeService'
-import ProductService from '@/features/products/ProductService'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import useSWR from 'swr'
@@ -60,42 +55,6 @@ export default function CreateVariation({
       atributos: []
     }
   ])
-
-  // Tipos de atributo
-  /*const attributeTypes: AttributeTypesWithAttributes[] = [
-    {
-      id: 1,
-      nombre: "color",
-      atributos: [
-        {
-          id: 101,
-          tipo_atributo_id: 1, // Relacionado con el ID de "color"
-          valor: "verde",
-        },
-        {
-          id: 102,
-          tipo_atributo_id: 1, // Relacionado con el ID de "color"
-          valor: "rojo",
-        },
-      ],
-    },
-    {
-      id: 2,
-      nombre: "talla",
-      atributos: [
-        {
-          id: 201,
-          tipo_atributo_id: 2, // Relacionado con el ID de "talla"
-          valor: "L",
-        },
-        {
-          id: 202,
-          tipo_atributo_id: 2, // Relacionado con el ID de "talla"
-          valor: "S",
-        },
-      ],
-    },
-  ];*/
 
 
   const handleAddAttribute = (variationId: number) => {
@@ -185,13 +144,14 @@ export default function CreateVariation({
           precio_mayorista: parseInt(variation.precio_mayorista),
           stock: parseInt(variation.stock)
         }
-        const nuevaVariacion = await VariationService.create(variacion)
+        const nuevaVariacion: DataResponse<Variation> = await apiRequest({url: `products/${variacion.producto_id}/variations`, method: 'POST', body: variacion})
         console.log("Nueva variacion")
         console.log(nuevaVariacion)
+        
         // Asociamos sus atributos
         variation.atributos.map(async (atributo) => {
           const atributoDeVariacion: Partial<VariationAttribute> = {
-            variacion_id: nuevaVariacion.id,
+            variacion_id: nuevaVariacion.data.id,
             atributo_id: atributo.valor_id
           }
           const nuevoAtributoDeVariacion = await VariationAttributeService.create(atributoDeVariacion)
@@ -213,7 +173,7 @@ export default function CreateVariation({
 
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Crear variacion de producto</h1>
       <p className="text-muted-foreground mb-3">
         Estas creando las variaciones para el producto:
