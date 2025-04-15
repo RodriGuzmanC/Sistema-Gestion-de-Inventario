@@ -8,8 +8,10 @@ export default new class OrderDetailService {
         try {
 
             return await OrderDetailRepository.getOrdersDetailsByOrder(orderId, page, itemsPerPage); // Llamamos al repositorio para obtener todos los detalles de la orden.
-        } catch (error: any) {
-            console.error('Error in OrderDetailService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in OrderDetailService:', error.message);
+            }
             throw new Error('No se obtuvieron los detalles de la orden, intenta más tarde.');
         }
     }
@@ -20,9 +22,10 @@ export default new class OrderDetailService {
 
             // Llamamos al repositorio para obtener el detalle de la orden por su ID
             return await OrderDetailRepository.getOrderDetail(id);
-        } catch (error: any) {
-            console.error('Error in OrderDetailService:', error.message);
-
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in OrderDetailService:', error.message);
+            }
             throw new Error('El detalle de la orden no existe o no se pudo obtener.');
         }
     }
@@ -35,8 +38,9 @@ export default new class OrderDetailService {
             const res = await OrderDetailRepository.createOrderDetail(orderDetail);
             return res;
         } catch (error) {
-            console.error('Error in create:', error);
-
+            if(error instanceof Error) {
+                console.error('Error in OrderDetailService:', error.message);
+            }
             throw new Error('Error al crear el detalle de la orden, intenta más tarde.');
         }
     }
@@ -49,8 +53,9 @@ export default new class OrderDetailService {
             const res = await OrderDetailRepository.updateOrderDetail(id, updates);
             return res;
         } catch (error) {
-            console.error('Error in update:', error);
-
+            if(error instanceof Error) {
+                console.error('Error in OrderDetailService:', error.message);
+            }
             throw new Error('Error al actualizar el detalle de la orden, intenta más tarde.');
         }
     }
@@ -61,9 +66,10 @@ export default new class OrderDetailService {
 
             // Llamamos al repositorio para eliminar el detalle de la orden
             return await OrderDetailRepository.deleteOrderDetail(id);
-        } catch (error: any) {
-            console.error('Error in delete:', error);
-
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in OrderDetailService:', error.message);
+            }
             throw new Error('Error al eliminar el detalle de la orden, intenta más tarde.');
         }
     }

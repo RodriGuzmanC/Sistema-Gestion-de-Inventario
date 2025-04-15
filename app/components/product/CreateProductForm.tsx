@@ -1,8 +1,7 @@
 'use client'
-import { CldUploadWidget } from 'next-cloudinary';
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ImagePlus, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -68,7 +67,7 @@ export function CreateProductForm() {
         categoria_id: parseInt(selectedCategory, 10),
       }));
 
-      const nuevosElementos = await Promise.all(categoriasProducto.map(async (categoria) => {
+      await Promise.all(categoriasProducto.map(async (categoria) => {
         const { data, error } = await apiRequest({ url: `products/${productoNuevo.id}/categories`, method: 'POST', body: categoria })
         console.log('categoria nueva: ', data)
         if (error) {

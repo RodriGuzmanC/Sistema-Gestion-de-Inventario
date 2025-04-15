@@ -11,8 +11,10 @@ export default new class AttributeService {
             }
 
             return await AttributeRepository.getAttributes(page, itemsPerPage); // Llamamos al repositorio para obtener los atributos
-        } catch (error: any) {
-            console.error('Error in AttributeService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in AttributeService:', error.message);
+            }
             throw new Error('No se obtuvieron los atributos, intentalo más tarde.');
         }
     }
@@ -23,8 +25,10 @@ export default new class AttributeService {
 
             // Llamamos al repositorio para obtener el atributo por su ID
             return await AttributeRepository.getAttribute(id);
-        } catch (error: any) {
-            console.error('Error in AttributeService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in AttributeService:', error.message);
+            }
             throw new Error('Error al obtener el atributo, intenta más tarde.');
         }
     }
@@ -60,8 +64,10 @@ export default new class AttributeService {
 
             // Llamamos al repositorio para eliminar el atributo
             return await AttributeRepository.deleteAttribute(id);
-        } catch (error: any) {
-            console.error('Error in delete:', error);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in delete:', error);
+            }
             throw new Error('Error al eliminar el atributo, intenta más tarde.');
         }
     }

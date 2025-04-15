@@ -13,8 +13,10 @@ export default new class CategoryService {
                 throw new Error("Parámetros de paginación inválidos");
             }
             return await CategoryRepository.getCategories(pages, itemsPerPage); // Llamamos al repositorio para obtener las categorías
-        } catch (error: any) {
-            console.error('Error in CategoryService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in CategoryService:', error.message);
+            }
             throw new Error('No se obtuvieron las categorías, intenta más tarde.');
         }
     }
@@ -24,8 +26,10 @@ export default new class CategoryService {
         try {
             // Llamamos al repositorio para obtener la categoría por su ID
             return await CategoryRepository.getCategory(id);
-        } catch (error: any) {
-            console.error('Error in CategoryService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in CategoryService:', error.message);
+            }
 
             throw new Error('La categoría no existe o no se pudo obtener.');
         }
@@ -61,8 +65,10 @@ export default new class CategoryService {
             // Llamamos al repositorio para eliminar la categoría
             const res = await CategoryRepository.deleteCategory(id);
             return res;
-        } catch (error: any) {
-            console.error('Error in delete:', error);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in CategoryService:', error.message);
+            }
             throw new Error('Error al eliminar la categoría, intenta más tarde.');
         }
     }

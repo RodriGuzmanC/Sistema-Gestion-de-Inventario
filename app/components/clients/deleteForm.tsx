@@ -21,7 +21,6 @@ interface DeleteFormProps {
 }
 
 export default function DeleteClientForm({ isOpen, onClose, client }: DeleteFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
@@ -30,7 +29,7 @@ export default function DeleteClientForm({ isOpen, onClose, client }: DeleteForm
     setIsDeleting(true)
     try {
 
-      const { data, error } = await apiRequest({ url: `clients/${client.id}`, method: "DELETE" })
+      const { error } = await apiRequest({ url: `clients/${client.id}`, method: "DELETE" })
 
       if (error) {
         throw new Error("Error al eliminar la cliente")
@@ -53,14 +52,10 @@ export default function DeleteClientForm({ isOpen, onClose, client }: DeleteForm
         <AlertDialogHeader>
           <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
           <AlertDialogDescription>
-            {isLoading ? (
-              "Cargando información..."
-            ) : (
-              <>
-                Esta acción eliminará permanentemente al cliente <strong>"{client.nombre}"</strong>. Esta acción no se
+              <div>
+                Esta acción eliminará permanentemente al cliente <strong>{client.nombre}</strong>. Esta acción no se
                 puede deshacer.
-              </>
-            )}
+              </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -68,7 +63,7 @@ export default function DeleteClientForm({ isOpen, onClose, client }: DeleteForm
           <AlertDialogAction
             onClick={handleDelete}
             className="bg-red-500 hover:bg-red-600"
-            disabled={isDeleting || isLoading}
+            disabled={isDeleting}
           >
             {isDeleting ? "Eliminando..." : "Eliminar"}
           </AlertDialogAction>

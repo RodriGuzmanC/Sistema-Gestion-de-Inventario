@@ -17,7 +17,6 @@ interface EditFormProps {
 
 export default function EditClientForm({ isOpen, onClose, client }: EditFormProps) {
     const [formData, setFormData] = useState<Omit<Client, "id" | "fecha_creacion">>(client)
-    const [isLoading, setIsLoading] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
 
@@ -35,7 +34,7 @@ export default function EditClientForm({ isOpen, onClose, client }: EditFormProp
 
         setIsSubmitting(true)
         try {
-            const { data, error } = await apiRequest({ url: `clients/${client.id}`, method: "PUT", body: formData })
+            const { error } = await apiRequest({ url: `clients/${client.id}`, method: "PUT", body: formData })
 
             if (error) {
                 throw new Error("Error al actualizar la cliente")
@@ -58,10 +57,8 @@ export default function EditClientForm({ isOpen, onClose, client }: EditFormProp
                 <DialogHeader>
                     <DialogTitle>Editar Cliente</DialogTitle>
                 </DialogHeader>
-                {isLoading ? (
-                    <div className="py-8 text-center">Cargando datos...</div>
-                ) : (
-                    <>
+                
+                    <div>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="edit-nombre">Nombre</Label>
@@ -82,8 +79,7 @@ export default function EditClientForm({ isOpen, onClose, client }: EditFormProp
                                 {isSubmitting ? "Guardando..." : "Guardar"}
                             </Button>
                         </DialogFooter>
-                    </>
-                )}
+                    </div>
             </DialogContent>
         </Dialog>
     )

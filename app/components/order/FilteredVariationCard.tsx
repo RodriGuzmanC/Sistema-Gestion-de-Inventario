@@ -15,7 +15,7 @@ export default function FilteredVariationCard({ variation, addToOrder }: Variati
         <div className="grid gap-4">
           {/* Atributos */}
           <div className="flex flex-wrap items-center gap-3">
-            {variation.variaciones_atributos.map((variacionAtributo: any) => (
+            {variation.variaciones_atributos.map((variacionAtributo: VariationAttributeWithRelations) => (
               <div 
                 key={variacionAtributo.id} 
                 className="flex flex-col items-center gap-1.5"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { CalendarDays, Edit, Eye, Layers, MoreVertical, Package, Trash, Truck } from 'lucide-react'
+import { CalendarDays, Eye, MoreVertical, Package, Trash, Truck } from 'lucide-react'
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -8,7 +8,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { calcularStockTotal, formatearFechaLarga } from '@/utils/utils'
+import { formatearFechaLarga } from '@/utils/utils'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 
 
@@ -102,7 +102,7 @@ export default function OrderCard({ order }: { order: OrderWithBasicRelations })
             <DialogTitle>¿Estás seguro de eliminar este pedido?</DialogTitle>
             <DialogDescription>
               El pedido será inhabilitado y no aparecerá en tu listado de pedidos, pero podrás restablecerlo en la
-              sección "Pedidos eliminados"
+              sección Pedidos eliminados
             </DialogDescription>
             <div className="flex justify-end space-x-2 pt-2">
               <Button onClick={() => setOpenDeleteModal(false)} variant="outline">

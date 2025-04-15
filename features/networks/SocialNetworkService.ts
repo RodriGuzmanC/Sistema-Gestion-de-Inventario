@@ -13,8 +13,10 @@ export default new class SocialNetworkService {
             }
 
             return await SocialNetworkRepository.getSocialNetworks(pages, itemsPerPage); // Llamamos al repositorio para obtener todas las redes sociales.
-        } catch (error: any) {
-            console.error('Error in SocialNetworkService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in SocialNetworkService:', error.message);
+            }
             throw new Error('No se obtuvieron las redes sociales, intenta más tarde.');
         }
     }
@@ -26,8 +28,10 @@ export default new class SocialNetworkService {
 
             // Llamamos al repositorio para obtener la red social por su ID
             return await SocialNetworkRepository.getSocialNetwork(id);
-        } catch (error: any) {
-            console.error('Error in SocialNetworkService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in SocialNetworkService:', error.message);
+            }
             throw new Error('La red social no existe o no se pudo obtener.');
         }
     }
@@ -40,7 +44,9 @@ export default new class SocialNetworkService {
             const res = await SocialNetworkRepository.createSocialNetwork(socialNetwork);
             return res;
         } catch (error) {
-            console.error('Error in create:', error);
+            if(error instanceof Error) {
+                console.error('Error in SocialNetworkService:', error.message);
+            }            
             throw new Error('Error al crear la red social, intenta más tarde.');
         }
     }
@@ -53,7 +59,9 @@ export default new class SocialNetworkService {
             const res = await SocialNetworkRepository.updateSocialNetwork(id, updates);
             return res;
         } catch (error) {
-            console.error('Error in update:', error);
+            if(error instanceof Error) {
+                console.error('Error in SocialNetworkService:', error.message);
+            }            
             throw new Error('Error al actualizar la red social, intenta más tarde.');
         }
     }
@@ -63,8 +71,10 @@ export default new class SocialNetworkService {
         try {
             // Llamamos al repositorio para eliminar la red social
             return await SocialNetworkRepository.deleteSocialNetwork(id);
-        } catch (error: any) {
-            console.error('Error in delete:', error);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in SocialNetworkService:', error.message);
+            }            
             throw new Error('Error al eliminar la red social, intenta más tarde.');
         }
     }

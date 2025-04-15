@@ -13,23 +13,6 @@ import { swrSettings } from '@/utils/swr/settings'
 import ErrorPage from '@/app/components/global/skeletons/ErrorPage'
 import OrderCardSkeleton from '@/app/components/skeletons/OrderSkeleton'
 
-interface ProductVariation {
-    id: string
-    color: string
-    size: string
-    stock: number
-    retailPrice: number
-    wholesalePrice: number
-}
-
-interface OrderItem extends ProductVariation {
-    quantity: number
-    price: number
-    discountedPrice?: number
-}
-
-
-
 
 type Param = {
     id: string
@@ -37,8 +20,6 @@ type Param = {
 
 export default function OrderDetail({ params }: { params: Param }) {
     const [selectedProduct, setSelectedProduct] = useState<string>('')
-    const [selectedSize, setSelectedSize] = useState<string>('')
-    const [selectedColor, setSelectedColor] = useState<string>('')
     const [filteredVariations, setFilteredVariations] = useState<VariationWithRelations[]>([])
     const [orderItems, setOrderItems] = useState<Partial<PrepareOrderDetail>[]>([])
 
@@ -112,7 +93,6 @@ export default function OrderDetail({ params }: { params: Param }) {
     const [productos, setProductos] = useState<ProductWithBasicRelations[]>([])
     const [producto, setProducto] = useState<ProductWithFullRelations | null>(null)
     const [atributos, setAtributos] = useState<AttributeTypesWithAttributes[]>([])
-    const [ordenActual, setOrdenActual] = useState<Order>()
     // Estado para los valores seleccionados de cada filtro
     const [selectedValues, setSelectedValues] = useState<Record<string, string>>({});
     const router = useRouter()
@@ -136,10 +116,12 @@ export default function OrderDetail({ params }: { params: Param }) {
                     precio_rebajado: order.precio_rebajado,
                     variacion_id: order.variacion?.id
                 }
-                const detallePedido: DataResponse<OrderDetail> = await apiRequest({url: `orders/${ordenPreparada.pedido_id}/order-details`, method: 'POST', body: ordenPreparada})
-
+                const { data: NewOrderDetail, error: NewOrdDetError }: DataResponse<OrderDetail> = await apiRequest({url: `orders/${ordenPreparada.pedido_id}/order-details`, method: 'POST', body: ordenPreparada})
+                if (NewOrdDetError) {
+                    throw new Error(NewOrdDetError)
+                }
                 console.log("Ordenes agregadas")
-                console.log(detallePedido)
+                console.log(NewOrderDetail)
                 // Restamos lo pedido a la variacion
                 if (order.variacion == undefined) throw Error("La variacion no tiene stock")
                 if (order.cantidad == undefined) throw Error("Una de las variaciones en la orden tiene una cantidad invalida")
@@ -147,9 +129,11 @@ export default function OrderDetail({ params }: { params: Param }) {
                 const cantidadActualizar: Partial<Variation> = {
                     stock: order.variacion?.stock - order.cantidad
                 }
-                const variacionActualizada = await apiRequest({url: `products/1/variations/${detallePedido.data.variacion_id}`, method: 'PUT', body: cantidadActualizar})
-
-                console.log("Nuevo stock de la variacion: ", variacionActualizada)
+                const { data: VarActualizado, error: VarActError } : DataResponse<Variation> = await apiRequest({url: `products/1/variations/${NewOrderDetail.variacion_id}`, method: 'PUT', body: cantidadActualizar})
+                if(VarActError){
+                    throw new Error(VarActError)
+                }
+                console.log("Nuevo stock de la variacion: ", VarActualizado)
             })
             toast("Tu pedido ha sido creado correctamente")
             router.push("/dashboard/pedidos")
@@ -177,7 +161,6 @@ export default function OrderDetail({ params }: { params: Param }) {
     
     useEffect(() => {
         if (order && !orderErr) {
-            setOrdenActual(order.data)
             setEsMayorista(order.data.tipo_pedido)
         }
     }, [order, orderErr])
@@ -239,6 +222,7 @@ export default function OrderDetail({ params }: { params: Param }) {
                         <form className="grid sm:grid-cols-2 gap-4">
                             {atributos.map((tipoAtributo) => (
                                 <Select
+                                    key={tipoAtributo.id}
                                     value={selectedValues[tipoAtributo.id.toString()] || ''}
                                     onValueChange={(value) => handleValueChange(tipoAtributo.id.toString(), value)}
                                 >
@@ -268,7 +252,7 @@ export default function OrderDetail({ params }: { params: Param }) {
                             <div className="grid gap-4">
                                 {filteredVariations.map((variation) => (
 
-                                    <FilteredVariationCard variation={variation} addToOrder={addToOrder} />
+                                    <FilteredVariationCard key={variation.id} variation={variation} addToOrder={addToOrder} />
                                 ))}
                             </div>
                         </div>

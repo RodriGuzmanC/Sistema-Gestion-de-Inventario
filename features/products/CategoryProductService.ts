@@ -1,5 +1,4 @@
 import CategoryProductRepository from "@/data/respositories/CategoryProductRepository";
-import { z } from "zod";
 
 
 export default new class CategoryProductService {
@@ -8,8 +7,10 @@ export default new class CategoryProductService {
 
         try {
             return await CategoryProductRepository.getProductCategories(productId, page, itemsPerPage);
-        } catch (error: any) {
-            console.error('Error in CategoryProductService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in CategoryProductService:', error.message);
+            }
             throw new Error('No se obtuvieron las relaciones categoría-producto, intenta más tarde.');
         }
     }
@@ -19,10 +20,9 @@ export default new class CategoryProductService {
         try {
 
             return await CategoryProductRepository.getProductCategory(id);
-        } catch (error: any) {
-            console.error('Error in CategoryProductService:', error.message);
-            if (error instanceof z.ZodError) {
-                throw new Error(error.errors.map((e) => e.message).join(", "));
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in CategoryProductService:', error.message);
             }
             throw new Error('La relación categoría-producto no existe o no se pudo obtener.');
         }
@@ -49,9 +49,8 @@ export default new class CategoryProductService {
 
             return await CategoryProductRepository.createProductCategory(categoryProduct);
         } catch (error) {
-            console.error('Error in create:', error);
-            if (error instanceof z.ZodError) {
-                throw new Error(error.errors.map((e) => e.message).join(", "));
+            if(error instanceof Error) {
+                console.error('Error in CategoryProductService:', error.message);
             }
             throw new Error('Error al crear la relación categoría-producto, intenta más tarde.');
         }
@@ -74,8 +73,10 @@ export default new class CategoryProductService {
         try {
 
             return await CategoryProductRepository.deleteProductCategory(id);
-        } catch (error: any) {
-            console.error('Error in delete:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in CategoryProductService:', error.message);
+            }
             throw new Error('Error al eliminar la relación categoría-producto, intenta más tarde.');
         }
     }

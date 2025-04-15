@@ -24,7 +24,7 @@ import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { z, ZodReadonly } from 'zod'
+import { z } from 'zod'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod';
 import useSWR, { useSWRConfig } from 'swr'
@@ -83,7 +83,6 @@ type Inputs = {
 
 export default function CreateOrder() {
     const router = useRouter()
-    const [formErrors, setFormErrors] = useState<any>({});
 
     const handleSubmitForm: SubmitHandler<Inputs> = async (data) => {
         try {
@@ -104,15 +103,18 @@ export default function CreateOrder() {
 
             console.log('Form Data:', formData)
             // Crea el pedido
-            const nuevoPedido: DataResponse<Order> = await apiRequest({ url: 'orders', method: 'POST', body: formData })
+            const { data: newOrder, error}: DataResponse<Order> = await apiRequest({ url: 'orders', method: 'POST', body: formData })
+            if(error) {
+                throw new Error(error)
+            }
             console.log("Nuevo pedido")
-            console.log(nuevoPedido)
+            console.log(newOrder)
             toast("Se ha creado con exito")
             // Navigate to next page
-            router.push(`crear/${nuevoPedido.data.id}/detalle/crear`)
+            router.push(`crear/${newOrder.id}/detalle/crear`)
         } catch (error) {
             if (error instanceof z.ZodError) {
-                setFormErrors(error.format());
+                alert(error.message)
             } else {
                 toast("Ha ocurrido un error, intentalo mas tarde")
                 console.error("Error inesperado:", error);
@@ -130,7 +132,10 @@ export default function CreateOrder() {
             const cuerpoCliente: Partial<Client> = {
                 nombre: nombreClienteNuevo
             }
-            const nuevoCliente = await apiRequest({ url: 'clients', method: 'POST', body: cuerpoCliente })
+            const { error } : DataResponse<Client> = await apiRequest({ url: 'clients', method: 'POST', body: cuerpoCliente })
+            if(error){
+                throw new Error(error)
+            }
             toast("Se ha creado el cliente con exito")
             mutate('clients')
             setIsDialogOpen(false)
@@ -141,16 +146,12 @@ export default function CreateOrder() {
     }
 
     const {
-        register,
         handleSubmit,
-        watch,
         formState: { errors },
         control,
     } = useForm<Inputs>({
         resolver: zodResolver(validationSchema)
     })
-    const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data)
-
 
 
     // Hook SWR para obtener todas las solicitudes en paralelo
@@ -222,7 +223,7 @@ export default function CreateOrder() {
                                     <DialogHeader>
                                         <DialogTitle>Crea un nuevo cliente</DialogTitle>
                                         <DialogDescription>
-                                            A continuacion ingresa el nombre del nuevo cliente, ya sea una marca o una persona, por ejemplo: "Juan Perez" o "Pepsi"
+                                            A continuacion ingresa el nombre del nuevo cliente, ya sea una marca o una persona, por ejemplo: 'Juan Perez' o 'Pepsi'
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="grid gap-4 py-4">

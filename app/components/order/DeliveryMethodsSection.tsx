@@ -27,7 +27,7 @@ export const DeliveryMethodsSection = () => {
   }
 
   // Obtenemos los datos
-  const { data, paginacion, error } = Response;
+  const { data } = Response;
 
   return (
     <Card>

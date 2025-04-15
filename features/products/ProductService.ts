@@ -1,6 +1,4 @@
 import ProductRepository from "@/data/respositories/ProductRepository";
-import { z } from "zod";
-
 
 export default new class ProductService {
     // Función privada para cargar el stock total de un producto
@@ -40,8 +38,10 @@ export default new class ProductService {
 
             // Retornar la respuesta con la paginación
             return allProducts;
-        } catch (error: any) {
-            console.error('Error in ProductService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in ProductService:', error.message);
+            }
             throw new Error('No se obtuvieron los productos, intenta más tarde.');
         }
     }
@@ -62,8 +62,10 @@ export default new class ProductService {
             }
 
             return res
-        } catch (error: any) {
-            console.error('Error in ProductService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in ProductService:', error.message);
+            }
             throw new Error('El producto no existe o no se pudo obtener.');
         }
     }
@@ -77,7 +79,9 @@ export default new class ProductService {
             const res = await ProductRepository.createProduct(product);
             return res;
         } catch (error) {
-            console.error('Error in create:', error);
+            if(error instanceof Error) {
+                console.error('Error in ProductService:', error.message);
+            }
             throw new Error('Error al crear el producto, intenta más tarde.');
         }
     }
@@ -90,7 +94,9 @@ export default new class ProductService {
             const res = await ProductRepository.updateProduct(id, updates);
             return res;
         } catch (error) {
-            console.error('Error in update:', error);
+            if(error instanceof Error) {
+                console.error('Error in ProductService:', error.message);
+            }
             throw new Error('Error al actualizar el producto, intenta más tarde.');
         }
     }
@@ -101,8 +107,10 @@ export default new class ProductService {
             // Llama al repositorio para eliminar el producto
             const res = await ProductRepository.deleteProduct(id);
             return res;
-        } catch (error: any) {
-            console.error('Error in delete:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in ProductService:', error.message);
+            }
             throw new Error('Error al eliminar el producto, intenta más tarde.');
         }
     }

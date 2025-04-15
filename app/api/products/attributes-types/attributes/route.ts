@@ -1,6 +1,5 @@
 'use server'
 import AttributeService from "@/features/attributes/AttributeService";
-import AttributeTypesService from "@/features/attributes/AttributeTypesService";
 import { handleError } from "@/utils/serverUtils";
 import { NextResponse, type NextRequest } from 'next/server'
 

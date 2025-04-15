@@ -1,8 +1,6 @@
-import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import { MoreVertical, Edit, Trash, Layers } from 'lucide-react'
 import {
   DropdownMenu,
@@ -12,8 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import ProductService from "@/features/products/ProductService"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { apiRequest } from "@/utils/utils"
 
@@ -119,7 +116,7 @@ export function ProductCard({ product }: Props) {
               <DialogHeader className="space-y-4" >
                 <DialogTitle >¿Estás seguro de eliminar este producto?</DialogTitle>
                 <DialogDescription>
-                  El producto sera inhabilitado y no aparecera en tu listado de productos, pero podras restablecerlo en la seccion "Productos eliminados"
+                  El producto sera inhabilitado y no aparecera en tu listado de productos, pero podras restablecerlo en la seccion 'Productos eliminados'
                 </DialogDescription>
                 <div className="flex justify-end space-x-2">
                   <Button onClick={() => setOpenDeleteModal(false)} variant="outline">

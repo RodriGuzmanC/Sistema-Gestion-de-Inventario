@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { mutate } from "swr"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -18,7 +18,6 @@ interface EditFormProps {
 
 export default function EditCategoryForm({ isOpen, onClose, category }: EditFormProps) {
     const [formData, setFormData] = useState<Omit<Category, "id">>(category)
-    const [isLoading, setIsLoading] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
 
@@ -36,7 +35,7 @@ export default function EditCategoryForm({ isOpen, onClose, category }: EditForm
 
         setIsSubmitting(true)
         try {
-            const { data, error } = await apiRequest({ url: `/categories/${category.id}`, method: "PUT", body: formData })
+            const { error } = await apiRequest({ url: `/categories/${category.id}`, method: "PUT", body: formData })
 
             if (error) {
                 throw new Error("Error al actualizar la categoría")
@@ -59,9 +58,6 @@ export default function EditCategoryForm({ isOpen, onClose, category }: EditForm
                 <DialogHeader>
                     <DialogTitle>Editar Categoría</DialogTitle>
                 </DialogHeader>
-                {isLoading ? (
-                    <div className="py-8 text-center">Cargando datos...</div>
-                ) : (
                     <>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
@@ -94,7 +90,6 @@ export default function EditCategoryForm({ isOpen, onClose, category }: EditForm
                             </Button>
                         </DialogFooter>
                     </>
-                )}
             </DialogContent>
         </Dialog>
     )

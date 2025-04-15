@@ -8,8 +8,6 @@ import { useModal } from "@/utils/others/use-modal-store"
 import { apiRequest } from "@/utils/utils"
 import { swrSettings } from "@/utils/swr/settings"
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
-
 export const ProductStatusSection = () => {
   // Peticion
   const { data: Response, error: ApiError, isLoading } = useSWR<PaginatedResponse<ProductStatus>>
@@ -29,7 +27,7 @@ export const ProductStatusSection = () => {
   }
 
   // Obtenemos los datos
-  const { data, paginacion, error } = Response;
+  const { data } = Response;
 
   return (
     <Card>

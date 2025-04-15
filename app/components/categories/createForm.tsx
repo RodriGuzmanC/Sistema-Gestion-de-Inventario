@@ -39,7 +39,7 @@ export default function CreateCategoryForm({ isOpen, onClose }: CreateFormProps)
 
     setIsSubmitting(true)
     try {
-      const { data, error } = await apiRequest({ url: `/categories/`, method: "POST", body: formData })
+      const { error } = await apiRequest({ url: `/categories/`, method: "POST", body: formData })
 
 
       if (error) {

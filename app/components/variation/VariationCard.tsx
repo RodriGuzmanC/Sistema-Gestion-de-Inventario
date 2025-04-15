@@ -6,12 +6,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { MoreVertical, Pencil, Trash } from 'lucide-react'
+import { MoreVertical, Trash } from 'lucide-react'
 import { EditVariationModal } from "./EditVariationModal"
-import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import { Button } from "@/components/ui/button"
+import { swrSettings } from "@/utils/swr/settings"
+import useSWR from "swr"
+import { apiRequest } from "@/utils/utils"
 
 interface VariationProps {
   variation: VariationWithRelations
@@ -24,7 +23,35 @@ export function VariationCard({
   onEdit,
   onDelete,
 }: VariationProps) {
-  const [openEditModal, setOpenEditModal] = useState(false);
+
+  const {
+    data: TypesWithAttributes,
+    error,
+    isLoading,
+    mutate,
+    isValidating,
+  } = useSWR<PaginatedResponse<AttributeTypesWithAttributes>>(
+    "products/attributes-types",
+    async () => {
+      const res: PaginatedResponse<AttributeTypesWithAttributes> = await apiRequest({
+        url: "products/attributes-types",
+        method: "GET"
+      })
+      if (res.error) {
+        throw new Error("API request failed")
+      }
+      return res
+    },
+    swrSettings,
+  )
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-64">Cargando...</div>
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error al cargar los datos: {error.message}</div>
+  }
 
   return (
     <Card className="min-h-[210px] relative flex items-end">
@@ -50,7 +77,7 @@ export function VariationCard({
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             {variation.variaciones_atributos.map((variacion_atributo) => (
-              <Badge variant="outline" className="capitalize">
+              <Badge variant="outline" className="capitalize" key={variacion_atributo.id}>
                 <div>{variacion_atributo.atributos.valor}</div>
               </Badge>
             ))}
@@ -70,8 +97,13 @@ export function VariationCard({
               <span className="text-muted-foreground">Stock:</span>
               <span className="font-medium">{variation.stock} Unidades</span>
             </div>
-            <EditVariationModal variationObj={variation}></EditVariationModal>
-            
+            {TypesWithAttributes && (
+              <EditVariationModal
+                variationObj={variation}
+                attributeTypes={TypesWithAttributes.data}
+              />
+            )}
+
 
           </div>
         </div>

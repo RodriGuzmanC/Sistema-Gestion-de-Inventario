@@ -1,49 +1,7 @@
 // socialNetworkService.ts
 
 import OrderRepository from "@/data/respositories/OrderRepository";
-import SocialNetworkRepository from "@/data/respositories/SocialNetworkRepository";
-import { z } from "zod";
 
-// Esquemas ZOD para validar
-const baseSchema = {
-    fecha_pedido: z.string()
-        .refine((val) => !isNaN(Date.parse(val)), {
-            message: "La fecha de pedido debe ser una fecha válida en formato datetime",
-        }),
-
-    fecha_entrega: z.string()
-        .refine((val) => !isNaN(Date.parse(val)), {
-            message: "La fecha de entrega debe ser una fecha válida en formato datetime",
-        }),
-
-    usuario_id: z.number()
-        .int("El ID del usuario debe ser un número entero")
-        .positive("El ID del usuario debe ser un número positivo"),
-
-    estado_pedido_id: z.number()
-        .int("El ID del estado del pedido debe ser un número entero")
-        .positive("El ID del estado del pedido debe ser un número positivo"),
-
-    metodo_entrega_id: z.number()
-        .int("El ID del método de entrega debe ser un número entero")
-        .positive("El ID del método de entrega debe ser un número positivo"),
-
-    tipo_pedido: z.boolean(),
-
-
-};
-const updateSchema = z.object({
-    id: z.number({ required_error: "ID es requerido" }).positive("ID debe ser un numero positivo"),
-    ...baseSchema,
-}).partial();
-
-const idValidateSchema = z.object({
-    id: z.number({ required_error: "ID es requerido" }).positive("ID debe ser un numero positivo"),
-});
-
-const createSchema = z.object({
-    ...baseSchema,
-})
 
 export default new class OrderService {
     // Obtener todas las órdenes
@@ -55,8 +13,10 @@ export default new class OrderService {
 
         try {
             return await OrderRepository.getOrders(pages, itemsPerPage, category); // Llamamos al repositorio para obtener todas las órdenes.
-        } catch (error: any) {
-            console.error('Error in OrderService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in OrderService:', error.message);
+            }
             throw new Error('No se obtuvieron las órdenes, intenta más tarde.');
         }
     }
@@ -67,10 +27,9 @@ export default new class OrderService {
 
             // Llamamos al repositorio para obtener la orden por su ID
             return await OrderRepository.getOrderWithAll(id);
-        } catch (error: any) {
-            console.error('Error in OrderService:', error.message);
-            if (error instanceof z.ZodError) {
-                throw new Error(error.errors.map((e) => e.message).join(", "));
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in OrderService:', error.message);
             }
             throw new Error('La orden no existe o no se pudo obtener.');
         }
@@ -80,10 +39,9 @@ export default new class OrderService {
         try {
             // Llamamos al repositorio para obtener la orden por su ID
             return await OrderRepository.getOrdersByDateRangeAndClient(startDate, endDate, clientId);
-        } catch (error: any) {
-            console.error('Error in OrderService:', error.message);
-            if (error instanceof z.ZodError) {
-                throw new Error(error.errors.map((e) => e.message).join(", "));
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in OrderService:', error.message);
             }
             throw new Error('La orden no existe o no se pudo obtener.');
         }
@@ -96,7 +54,9 @@ export default new class OrderService {
             const res = await OrderRepository.createOrder(order);
             return res;
         } catch (error) {
-            console.error('Error in create:', error);
+            if(error instanceof Error) {
+                console.error('Error in OrderService:', error.message);
+            }
             throw new Error('Error al crear la orden, intenta más tarde.');
         }
     }
@@ -108,7 +68,9 @@ export default new class OrderService {
             const res = await OrderRepository.updateOrder(id, updates);
             return res;
         } catch (error) {
-            console.error('Error in update:', error);
+            if(error instanceof Error) {
+                console.error('Error in OrderService:', error.message);
+            }
             throw new Error('Error al actualizar la orden, intenta más tarde.');
         }
     }
@@ -119,8 +81,10 @@ export default new class OrderService {
             // Llamamos al repositorio para eliminar la orden
             const res = await OrderRepository.deleteOrder(id);
             return res
-        } catch (error: any) {
-            console.error('Error in delete:', error);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in OrderService:', error.message);
+            }
             throw new Error('Error al eliminar la orden, intenta más tarde.');
         }
     }

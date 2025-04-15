@@ -4,10 +4,8 @@ import ErrorPage from "@/app/components/global/skeletons/ErrorPage"
 import OrderCardSkeleton from "@/app/components/skeletons/OrderSkeleton"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import OrderService from "@/features/orders/OrderService"
 import { swrSettings } from "@/utils/swr/settings"
 import { apiRequest, calcularStockTotal, calcularSubTotal, formatearFechaLarga } from "@/utils/utils"
-import { useEffect, useState } from "react"
 import useSWR from "swr"
 
 type Param = {

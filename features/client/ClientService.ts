@@ -10,8 +10,10 @@ export default new class ClientService {
                 throw new Error("Parámetros de paginación inválidos");
             }
             return await ClientRepository.getClients(pages, itemsPerPage);
-        } catch (error: any) {
-            console.error('Error in ClientService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in ClientService:', error.message);
+            }
             throw new Error('No se obtuvieron los usuarios, intenta más tarde.');
         }
     }
@@ -21,8 +23,10 @@ export default new class ClientService {
         try {
 
             return await ClientRepository.getClient(id);
-        } catch (error: any) {
-            console.error('Error in ClientService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in ClientService:', error.message);
+            }
             throw new Error('El usuario no existe o no se pudo obtener.');
         }
     }
@@ -34,7 +38,9 @@ export default new class ClientService {
 
             return await ClientRepository.createClient(Client);
         } catch (error) {
-            console.error('Error in create:', error);
+            if(error instanceof Error) {
+                console.error('Error in ClientService:', error.message);
+            }
             throw new Error('Error al crear el cliente, intenta más tarde.');
         }
     }
@@ -44,7 +50,9 @@ export default new class ClientService {
         try {
             return await ClientRepository.updateClient(id, updates);
         } catch (error) {
-            console.error('Error in update:', error);
+            if(error instanceof Error) {
+                console.error('Error in ClientService:', error.message);
+            }
             throw new Error('Error al actualizar el cliente, intenta más tarde.');
         }
     }
@@ -54,8 +62,10 @@ export default new class ClientService {
         try {
 
             return await ClientRepository.deleteClient(id);
-        } catch (error: any) {
-            console.error('Error in delete:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in ClientService:', error.message);
+            }
             throw new Error('Error al eliminar el cliente, intenta más tarde.');
         }
     }

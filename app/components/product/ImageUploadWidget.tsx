@@ -47,7 +47,7 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({ isOpen, onClose, on
         onImageUploaded(uploadedImageUrl); // Llamar a la función para manejar la URL de la imagen subida
         onClose(); // Cerrar la ventana modal
       } else {
-        setUploadError(result.error.message || 'Error desconocido');
+        throw new Error('Error desconocido: ' + result.error.message)
       }
     } catch (error) {
       setUploadError('Error al subir la imagen');

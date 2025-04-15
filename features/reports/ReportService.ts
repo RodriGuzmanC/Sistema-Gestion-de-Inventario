@@ -1,4 +1,3 @@
-import OrderRepository from "@/data/respositories/OrderRepository";
 import ReportsRepository from "@/data/respositories/ReportsRepository";
 
 
@@ -14,8 +13,10 @@ export default new class ReportService {
             });
 
             return ordersWithQuantity
-        } catch (error: any) {
-            console.error('Error in ReportService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in ReportService:', error.message);
+            }
             throw new Error('No se obtuvo el reporte, intenta más tarde.');
         }
     }

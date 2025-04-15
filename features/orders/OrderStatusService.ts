@@ -6,8 +6,10 @@ export default new class OrderStatusService {
     async getAll(page: number = 1, itemsPerPage: number = 10): Promise<PaginatedResponse<OrderStatus[]>> {
         try {
             return await OrderStatusRepository.getOrderStatuses(page, itemsPerPage); // Llama al repositorio para obtener todos los estados
-        } catch (error: any) {
-            console.error('Error in OrderStatusService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in OrderStatusService:', error.message);
+            }
             throw new Error('No se obtuvieron los estados de la orden, intenta más tarde.');
         }
     }
@@ -18,8 +20,10 @@ export default new class OrderStatusService {
 
             // Llama al repositorio para obtener un estado por su ID
             return await OrderStatusRepository.getOrderStatus(id);
-        } catch (error: any) {
-            console.error('Error in OrderStatusService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in OrderStatusService:', error.message);
+            }
             throw new Error('El estado de la orden no existe o no se pudo obtener.');
         }
     }
@@ -32,7 +36,9 @@ export default new class OrderStatusService {
             const res = await OrderStatusRepository.createOrderStatus(orderStatus);
             return res;
         } catch (error) {
-            console.error('Error in create:', error);
+            if(error instanceof Error) {
+                console.error('Error in OrderStatusService:', error.message);
+            }
             throw new Error('Error al crear el estado de la orden, intenta más tarde.');
         }
     }
@@ -45,7 +51,9 @@ export default new class OrderStatusService {
             const res = await OrderStatusRepository.updateOrderStatus(id, updates);
             return res;
         } catch (error) {
-            console.error('Error in update:', error);
+            if(error instanceof Error) {
+                console.error('Error in OrderStatusService:', error.message);
+            }
             throw new Error('Error al actualizar el estado de la orden, intenta más tarde.');
         }
     }
@@ -55,8 +63,10 @@ export default new class OrderStatusService {
         try {
             // Llama al repositorio para eliminar el estado
             return await OrderStatusRepository.deleteOrderStatus(id);
-        } catch (error: any) {
-            console.error('Error in delete:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in OrderStatusService:', error.message);
+            }
             throw new Error('Error al eliminar el estado de la orden, intenta más tarde.');
         }
     }

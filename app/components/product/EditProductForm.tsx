@@ -1,9 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { ImagePlus, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,65 +9,21 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import ProductService from '@/features/products/ProductService'
-import { apiRequest, executeAsyncFunction } from '@/utils/utils'
-import CategoryService from '@/features/categories/CategoryService'
-import CategoryProductService from '@/features/products/CategoryProductService'
+import { apiRequest } from '@/utils/utils'
 import useSWR from 'swr'
 import { swrSettings } from '@/utils/swr/settings'
 import ErrorPage from '../global/skeletons/ErrorPage'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CldUploadButton, CldUploadWidget } from 'next-cloudinary'
+import { CldUploadWidget } from 'next-cloudinary'
 
 
 export function EditProductForm({ productId }: { productId: number }) {
-    const router = useRouter()
-    const [mainImage, setMainImage] = useState<string | null>(null)
-    const [galleryImages, setGalleryImages] = useState<string[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
     //const [categories, setCategories] = useState<Category[]>([])
     const [categoriesOfProduct, setCategoriesOfProduct] = useState<CategoryProductWithRelations[]>([])
     //const [productEdit, setProductEdit] = useState<ProductWithFullRelations>()
     const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
     const [urlUploadedImage, setUrlUploadedImage] = useState<string | null>(null)
-    const [oldImagePublicId, setOldImagePublicId] = useState<string | null>(null);
-
-    const handleEditImage = async (result: any) => {
-        // Si ya existe una imagen anterior, la eliminamos de Cloudinary
-        if (oldImagePublicId) {
-            try {
-                // Llamamos a la API de Cloudinary para eliminar la imagen anterior
-                const response = await fetch(`https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/destroy`, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        public_id: oldImagePublicId, // El ID público de la imagen anterior
-                        api_key: 'YOUR_API_KEY', // Tu API Key de Cloudinary
-                        timestamp: Math.floor(Date.now() / 1000), // Timestamp necesario para la firma
-                    }),
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-    
-                if (!response.ok) {
-                    throw new Error('Error al eliminar la imagen anterior de Cloudinary');
-                }
-            } catch (error) {
-                console.error('Error al eliminar la imagen anterior de Cloudinary:', error);
-            }
-        }
-    
-        // Obtener el public_id de la nueva imagen subida desde el resultado de Cloudinary
-        const newImagePublicId = result?.public_id;
-    
-        // Actualizamos el estado con la nueva URL de la imagen
-        const newImageUrl = result?.secure_url; // La URL segura de la imagen subida
-        setUrlUploadedImage(newImageUrl); // Actualiza el estado con la nueva imagen
-    
-        // Guardar el ID público de la nueva imagen para usarlo en futuras eliminaciones
-        setOldImagePublicId(newImagePublicId);
-    
-        // Puedes agregar más lógica aquí si es necesario
-    };
 
     async function handleSubmit(formData: FormData) {
         try {
@@ -112,7 +66,7 @@ export function EditProductForm({ productId }: { productId: number }) {
     };
 
     // Comparar cambios al enviar
-    const handleSave = () => {
+    const handleSave = async () => {
         const originalIds = categoriesOfProduct.map((c) => c.categoria_id);
 
         const categoriesToAdd = selectedCategories.filter(
@@ -137,12 +91,30 @@ export function EditProductForm({ productId }: { productId: number }) {
             return cat
         })
         if (newCategoriesProduct.length > 0) {
-            CategoryProductService.createMultiple(newCategoriesProduct)
+            for (const category of newCategoriesProduct) {
+                const { error }: PaginatedResponse<Category> = await apiRequest({
+                    url: `products/${productId}/categories`,
+                    method: 'POST',
+                    body: category
+                });
+                if (error) {
+                    throw new Error(error);
+                }
+            }
         }
         // Eliminar
 
         if (idsToRemove.length > 0) {
-            CategoryProductService.deleteMultiple(idsToRemove)
+            for (const id of idsToRemove) {
+                const { error }: PaginatedResponse<Category> = await apiRequest({
+                    url: `products/${productId}/categories/${id}`,
+                    method: 'DELETE'
+                });
+        
+                if (error) {
+                    throw new Error(error);
+                }
+            }
         }
 
     };

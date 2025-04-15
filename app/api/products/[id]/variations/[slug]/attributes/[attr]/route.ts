@@ -1,10 +1,8 @@
 import VariationAttributeService from '@/features/variations/VariationAttributeService';
-import VariationService from '@/features/variations/VariationService';
 import { handleError } from '@/utils/serverUtils';
 import { NextResponse } from 'next/server';
 
 export async function GET(
-    request: Request,
     { params }: { params: { id: string, slug: string, attr: string } } // Asegúrate de que el parámetro sea 'id'
 ) {
     const productId = params.id; // Obtén el id directamente
@@ -54,7 +52,6 @@ export async function PUT(
 }
 
 export async function DELETE(
-    request: Request,
     { params }: { params: { id: string, slug: string, attr: string } } // Asegúrate de que el parámetro sea 'id'
 ) {
     const productId = params.id; // Obtén el id directamente

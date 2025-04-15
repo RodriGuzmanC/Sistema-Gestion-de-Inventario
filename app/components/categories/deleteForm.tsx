@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { mutate } from "swr"
 import {
   AlertDialog,
@@ -21,7 +21,6 @@ interface DeleteFormProps {
 }
 
 export default function DeleteCategoryForm({ isOpen, onClose, category }: DeleteFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
@@ -30,7 +29,7 @@ export default function DeleteCategoryForm({ isOpen, onClose, category }: Delete
     setIsDeleting(true)
     try {
 
-      const { data, error } = await apiRequest({ url: `/categories/${category.id}`, method: "DELETE" })
+      const { error } = await apiRequest({ url: `/categories/${category.id}`, method: "DELETE" })
 
       if (error) {
         throw new Error("Error al eliminar la categoría")
@@ -53,14 +52,10 @@ export default function DeleteCategoryForm({ isOpen, onClose, category }: Delete
         <AlertDialogHeader>
           <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
           <AlertDialogDescription>
-            {isLoading ? (
-              "Cargando información..."
-            ) : (
-              <>
-                Esta acción eliminará permanentemente la categoría <strong>"{category.nombre}"</strong>. Esta acción no se
+              <div>
+                Esta acción eliminará permanentemente la categoría <strong>{category.nombre}</strong>. Esta acción no se
                 puede deshacer.
-              </>
-            )}
+              </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -68,7 +63,7 @@ export default function DeleteCategoryForm({ isOpen, onClose, category }: Delete
           <AlertDialogAction
             onClick={handleDelete}
             className="bg-red-500 hover:bg-red-600"
-            disabled={isDeleting || isLoading}
+            disabled={isDeleting}
           >
             {isDeleting ? "Eliminando..." : "Eliminar"}
           </AlertDialogAction>

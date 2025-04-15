@@ -1,4 +1,3 @@
-import page from '@/app/dashboard/page';
 import createSupabaseClient from '@/utils/dbClient';
 import { makePagination } from '@/utils/serverUtils';
 import { SupabaseClient } from '@supabase/supabase-js';

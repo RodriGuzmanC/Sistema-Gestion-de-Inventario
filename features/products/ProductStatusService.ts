@@ -5,8 +5,10 @@ export default new class ProductStatusService {
     async getAll(page: number = 1, itemsPerPage: number = 10): Promise<PaginatedResponse<ProductStatus>> {
         try {
             return await ProductStatusRepository.getProductStatuses(page, itemsPerPage);
-        } catch (error: any) {
-            console.error('Error in ProductStatusService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in ProductStatusService:', error.message);
+            }
             throw new Error('No se obtuvieron los estados de producto, intenta más tarde.');
         }
     }
@@ -15,8 +17,10 @@ export default new class ProductStatusService {
     async getOne(id: number): Promise<DataResponse<ProductStatus>> {
         try {
             return await ProductStatusRepository.getProductStatus(id);
-        } catch (error: any) {
-            console.error('Error in ProductStatusService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in ProductStatusService:', error.message);
+            }
             throw new Error('El estado del producto no existe o no se pudo obtener.');
         }
     }
@@ -27,7 +31,9 @@ export default new class ProductStatusService {
 
             return await ProductStatusRepository.createProductStatus(productStatus);
         } catch (error) {
-            console.error('Error in create:', error);
+            if(error instanceof Error) {
+                console.error('Error in ProductStatusService:', error.message);
+            }
             throw new Error('Error al crear el estado de producto, intenta más tarde.');
         }
     }
@@ -37,7 +43,9 @@ export default new class ProductStatusService {
         try {
             return await ProductStatusRepository.updateProductStatus(id, updates);
         } catch (error) {
-            console.error('Error in update:', error);
+            if(error instanceof Error) {
+                console.error('Error in ProductStatusService:', error.message);
+            }
             throw new Error('Error al actualizar el estado de producto, intenta más tarde.');
         }
     }
@@ -47,8 +55,10 @@ export default new class ProductStatusService {
         try {
 
             return await ProductStatusRepository.deleteProductStatus(id);
-        } catch (error: any) {
-            console.error('Error in delete:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in ProductStatusService:', error.message);
+            }
             throw new Error('Error al eliminar el estado de producto, intenta más tarde.');
         }
     }

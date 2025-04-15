@@ -1,6 +1,5 @@
 'use server'
 
-import { redirect } from "next/dist/server/api-utils"
 import { NextResponse } from "next/server"
 
 const { createClientComponentServer } = require('@/utils/supabase/server.ts')

@@ -12,12 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import VariationAttributeService from '@/features/variations/VariationAttributeService'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 import { apiRequest } from '@/utils/utils'
 import { swrSettings } from '@/utils/swr/settings'
+import ErrorPage from '@/app/components/global/skeletons/ErrorPage'
+import OrderCardSkeleton from '@/app/components/skeletons/OrderSkeleton'
 
 
 
@@ -144,19 +145,27 @@ export default function CreateVariation({
           precio_mayorista: parseInt(variation.precio_mayorista),
           stock: parseInt(variation.stock)
         }
-        const nuevaVariacion: DataResponse<Variation> = await apiRequest({url: `products/${variacion.producto_id}/variations`, method: 'POST', body: variacion})
+        const { data: variacionNueva, error } : DataResponse<Variation> = await apiRequest({url: `products/${variacion.producto_id}/variations`, method: 'POST', body: variacion})
+        if(error) {
+          throw new Error("Error al crear la variacion")
+        }
         console.log("Nueva variacion")
-        console.log(nuevaVariacion)
+        console.log(variacionNueva)
         
         // Asociamos sus atributos
         variation.atributos.map(async (atributo) => {
           const atributoDeVariacion: Partial<VariationAttribute> = {
-            variacion_id: nuevaVariacion.data.id,
+            variacion_id: variacionNueva.id,
             atributo_id: atributo.valor_id
           }
-          const nuevoAtributoDeVariacion = await VariationAttributeService.create(atributoDeVariacion)
+          // Request
+          const { data: AttrVar, error } : DataResponse<VariationAttribute> = await apiRequest({url: `products/${variacion.producto_id}/variations/${variacionNueva.id}/attributes`, method: 'POST', body: atributoDeVariacion})
+
+          if(error) {
+            throw new Error("Error al crear la variacion")
+          }
           console.log("Nuevo atributo de variacion")
-          console.log(nuevoAtributoDeVariacion)
+          console.log(AttrVar)
         })
         // Todo exito
         toast("Se han creado las variaciones exitosamente")
@@ -171,6 +180,16 @@ export default function CreateVariation({
 
   const { data: product, error: productError, isLoading: productLoading } = useSWR<DataResponse<ProductWithFullRelations>>('product', () => apiRequest({url: 'products/' + params.id}), swrSettings)
 
+
+  // Manejo de errores
+    if (error || productError) {
+        return <ErrorPage />;
+    }
+
+    // Manejo de carga
+    if (isLoading || productLoading) {
+        return <OrderCardSkeleton />;
+    }
 
   return (
     <div className="max-w-4xl mx-auto">

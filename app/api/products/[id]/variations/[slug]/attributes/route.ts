@@ -21,6 +21,9 @@ export async function GET(request: NextRequest,
 
         // Comprueba que el producto de la variacion exista
         const product = await ProductService.getOne(productId);
+        if (!product) {
+            throw new Error(`Producto con ID ${productId} no encontrado`);
+        }
 
         // Busqueda de los atributos de la variacion
         const attributes = await VariationAttributeService.getAllByVariation(variationId, pagina, items);
@@ -50,10 +53,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         const variationId = parseInt(params.slug)
 
         const data = await request.json();
-        // Comprueba que el producto de la variacion exista
+
+        // Comprueba que el producto exista
         const product = await ProductService.getOne(productId);
-        // Comprueba que la varacion exista
-        const variation = await VariationService.getOne(variationId)
+        if (!product) {
+            throw new Error(`Producto con ID ${productId} no encontrado`);
+        }
+
+        // Comprueba que la variación exista
+        const variation = await VariationService.getOne(variationId);
+        if (!variation) {
+            throw new Error(`Variación con ID ${variationId} no encontrada`);
+        }
 
         // Crea el nuevo atributo de la variacion
         const newVariationAttribute = await VariationAttributeService.create(data);

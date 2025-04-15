@@ -5,19 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail, Moon, Sun } from 'lucide-react'
-import createSupabaseClient from '@/utils/dbClient'
-import { signInWithGoogle } from '@/utils/auth/actions'
-import { OneTapGoogle } from './components/OneTapGoogle'
-
-
+import { Moon, Sun } from 'lucide-react'
 
 
 export default function ModernLogin() {
 
   const [isDark, setIsDark] = useState(false)
 
-  async function logIn(){
+  /*async function logIn(){
     const supabase = createSupabaseClient()
   
     const res = await supabase.auth.signInWithOAuth({
@@ -27,11 +22,8 @@ export default function ModernLogin() {
       },
     });
     
-  }
+  }*/
 
-  const handleLogin = async () => {
-    const response = await signInWithGoogle();
-  };
 
   return (
     <div className={`min-h-screen w-full flex items-center justify-center p-4 transition-colors ${isDark ? 'dark bg-gray-950' : 'bg-gray-50'}`}>
@@ -56,10 +48,10 @@ export default function ModernLogin() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="w-full" onClick={logIn}>
+              {/*<Button variant="outline" className="w-full" onClick={logIn}>
                 <Mail className="mr-2 h-4 w-4" />
                 Google
-              </Button>
+              </Button>*/}
               {/*<OneTapGoogle></OneTapGoogle>*/}
               
             </div>

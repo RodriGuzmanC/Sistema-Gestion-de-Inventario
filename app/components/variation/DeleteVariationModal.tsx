@@ -11,14 +11,20 @@ export default function DeleteVariationModal(
 ) {
   const { mutate } = useSWRConfig()
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     // Llamado a la api
     try {
-        apiRequest({ url: `products/${productId}/variations/${variationId}`, method: 'DELETE' })
+        const { error } : DataResponse<Variation> = await apiRequest({ url: `products/${productId}/variations/${variationId}`, method: 'DELETE' })
+        if (error) {
+          throw new Error("Error al eliminar la variación")
+        }
         mutate('product')
         console.log("Se elimino bien")
     } catch (error) {
         console.log("No se elimino")
+        if (error instanceof Error) {
+          alert(error.message)
+        }
     }
 }
 

@@ -1,12 +1,10 @@
 "use client"
-import { CustomLoader } from '@/app/components/Loader';
 import { ProductCard } from '@/app/components/product/ProductCard'
 import ProductFilter from '@/app/components/product/ProductFilter';
 import { ProductCardSkeleton } from '@/app/components/skeletons/ProductSkeleton';
-import ProductService from '@/features/products/ProductService';
 import { swrSettings } from '@/utils/swr/settings';
 import { apiRequest } from '@/utils/utils';
-import React, { Suspense, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 
 
@@ -41,7 +39,7 @@ export default function page() {
       <ProductFilter products={products.data} setProducts={setFilteredProducts}></ProductFilter>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3'>
         {products.data.map((producto: ProductWithBasicRelations) => (
-          <ProductCard product={producto} />
+          <ProductCard key={producto.id} product={producto} />
         ))}
 
       </div>

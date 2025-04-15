@@ -5,8 +5,10 @@ export default new class VariationService {
     async getAllVariationsByProduct(productId: number, page: number = 1, itemsPerPage: number = 10): Promise<PaginatedResponse<Variation[]>> {
         try {
             return await VariationRepository.getVariationsByProduct(page, itemsPerPage, productId);
-        } catch (error: any) {
-            console.error('Error in VariationService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in VariationService:', error.message);
+            }
             throw new Error('No se obtuvieron las variaciones, intenta más tarde.');
         }
     }
@@ -16,8 +18,10 @@ export default new class VariationService {
         try {
 
             return await VariationRepository.getVariation(id);
-        } catch (error: any) {
-            console.error('Error in VariationService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in VariationService:', error.message);
+            }
             throw new Error('La variación no existe o no se pudo obtener.');
         }
     }
@@ -28,7 +32,9 @@ export default new class VariationService {
 
             return await VariationRepository.createVariation(variation);
         } catch (error) {
-            console.error('Error in create:', error);
+            if(error instanceof Error) {
+                console.error('Error in VariationService:', error.message);
+            }            
             throw new Error('Error al crear la variación, intenta más tarde.');
         }
     }
@@ -38,7 +44,9 @@ export default new class VariationService {
         try {
             return await VariationRepository.updateVariation(id, updates);
         } catch (error) {
-            console.error('Error in update:', error);
+            if(error instanceof Error) {
+                console.error('Error in VariationService:', error.message);
+            }            
             throw new Error('Error al actualizar la variación, intenta más tarde.');
         }
     }
@@ -48,8 +56,10 @@ export default new class VariationService {
         try {
 
             return await VariationRepository.deleteVariation(id);
-        } catch (error: any) {
-            console.error('Error in delete:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in VariationService:', error.message);
+            }            
             throw new Error('Error al eliminar la variación, intenta más tarde.');
         }
     }

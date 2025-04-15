@@ -13,8 +13,10 @@ export default new class InvoiceService {
                 throw new Error("Parámetros de paginación inválidos");
             }
             return await InvoicesRepository.getInvoices(pages, itemsPerPage); // Llamamos al repositorio para obtener las facturas
-        } catch (error: any) {
-            console.error('Error in InvoiceService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in InvoiceService:', error.message);
+            }
             throw new Error('No se obtuvieron las facturas, intenta más tarde.');
         }
     }
@@ -24,9 +26,10 @@ export default new class InvoiceService {
         try {
             // Llamamos al repositorio para obtener la factura por su ID
             return await InvoicesRepository.getInvoice(id);
-        } catch (error: any) {
-            console.error('Error in InvoiceService:', error.message);
-
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in InvoiceService:', error.message);
+            }
             throw new Error('La factura no existe o no se pudo obtener.');
         }
     }
@@ -38,7 +41,9 @@ export default new class InvoiceService {
             const res = await InvoicesRepository.createInvoice(invoice);
             return res;
         } catch (error) {
-            console.error('Error in create:', error);
+            if(error instanceof Error) {
+                console.error('Error in InvoiceService:', error.message);
+            }            
             throw new Error('Error al crear la factura, intenta más tarde.');
         }
     }
@@ -50,7 +55,9 @@ export default new class InvoiceService {
             const res = await InvoicesRepository.updateInvoice(id, updates);
             return res;
         } catch (error) {
-            console.error('Error in update:', error);
+            if(error instanceof Error) {
+                console.error('Error in InvoiceService:', error.message);
+            }            
             throw new Error('Error al actualizar la factura, intenta más tarde.');
         }
     }
@@ -61,8 +68,10 @@ export default new class InvoiceService {
             // Llamamos al repositorio para eliminar la factura
             const res = await InvoicesRepository.deleteInvoice(id);
             return res;
-        } catch (error: any) {
-            console.error('Error in delete:', error);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in InvoiceService:', error.message);
+            }
             throw new Error('Error al eliminar la factura, intenta más tarde.');
         }
     }

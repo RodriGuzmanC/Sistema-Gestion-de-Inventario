@@ -15,16 +15,10 @@ import { AlertTriangle } from 'lucide-react'
 import { apiRequest } from "@/utils/utils"
 
 
-interface AttributeType {
-  id: number
-  nombre: string
-  atributos: any[]
-}
-
 interface DeleteAttributeTypeFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  attributeType: AttributeType
+  attributeType: AttributeTypesWithAttributes
   onSuccess: () => void
 }
 

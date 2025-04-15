@@ -4,8 +4,10 @@ export default new class AttibuteTypesService {
     async getAll(): Promise<AttributeType[]> {
         try {
             return await AttributeTypesRepository.getAttributeTypes();
-        } catch (error: any) {
-            console.error('Error in AttributeService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in AttributeService:', error.message);
+            }
             throw new Error('No se obtuvieron los registros, intentalo mas tarde.');
         }
     }
@@ -17,8 +19,10 @@ export default new class AttibuteTypesService {
                 throw new Error("Parámetros de paginación inválidos");
             }
             return await AttributeTypesRepository.getAttributeTypesWithAttributes(page, itemsPerPage);
-        } catch (error: any) {
-            console.error('Error in AttributeService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in AttributeService:', error.message);
+            }
             throw new Error('No se obtuvieron los registros, intentalo mas tarde.');
         }
     }
@@ -27,8 +31,10 @@ export default new class AttibuteTypesService {
         try {
 
             return await AttributeTypesRepository.getAttributeType(id);
-        } catch (error: any) {
-            console.error('Error in AttributeService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in AttributeService:', error.message);
+            }
             throw new Error('El tipo de atributo no existe.');
         }
     }
@@ -37,8 +43,10 @@ export default new class AttibuteTypesService {
         try {
             // Llamada al repositorio y logica de negocio
             return await AttributeTypesRepository.deleteAttributeType(id);
-        } catch (error: any) {
-            console.error('Error in AttributeService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in AttributeService:', error.message);
+            }
             throw new Error('Error al eliminar, intentalo mas tarde.');
         }
     }

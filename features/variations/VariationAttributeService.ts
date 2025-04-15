@@ -6,8 +6,10 @@ export default new class VariationAttributeService {
         try {
 
             return await VariationAttributeRepository.getVariationAttributesByVariationId(variationId, page, itemsPerPage);
-        } catch (error: any) {
-            console.error('Error in VariationAttributeService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in VariationAttributeService:', error.message);
+            }
             throw new Error('No se obtuvieron los atributos de variación, intenta más tarde.');
         }
     }
@@ -17,8 +19,10 @@ export default new class VariationAttributeService {
         try {
 
             return await VariationAttributeRepository.getVariationAttribute(id);
-        } catch (error: any) {
-            console.error('Error in VariationAttributeService:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in VariationAttributeService:', error.message);
+            }
             throw new Error('El atributo de variación no existe o no se pudo obtener.');
         }
     }
@@ -29,7 +33,9 @@ export default new class VariationAttributeService {
 
             return await VariationAttributeRepository.createVariationAttribute(variationAttribute);
         } catch (error) {
-            console.error('Error in create:', error);
+            if(error instanceof Error) {
+                console.error('Error in VariationAttributeService:', error.message);
+            }
             throw new Error('Error al crear el atributo de variación, intenta más tarde.');
         }
     }
@@ -40,7 +46,9 @@ export default new class VariationAttributeService {
 
             return await VariationAttributeRepository.updateVariationAttribute(id, updates);
         } catch (error) {
-            console.error('Error in update:', error);
+            if(error instanceof Error) {
+                console.error('Error in VariationAttributeService:', error.message);
+            }
             throw new Error('Error al actualizar el atributo de variación, intenta más tarde.');
         }
     }
@@ -50,8 +58,10 @@ export default new class VariationAttributeService {
         try {
 
             return await VariationAttributeRepository.deleteVariationAttribute(id);
-        } catch (error: any) {
-            console.error('Error in delete:', error.message);
+        } catch (error) {
+            if(error instanceof Error) {
+                console.error('Error in VariationAttributeService:', error.message);
+            }
             
             throw new Error('Error al eliminar el atributo de variación, intenta más tarde.');
         }

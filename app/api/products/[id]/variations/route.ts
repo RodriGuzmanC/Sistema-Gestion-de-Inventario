@@ -1,5 +1,4 @@
 'use server'
-import ProductService from "@/features/products/ProductService";
 import VariationService from "@/features/variations/VariationService";
 import { handleError } from "@/utils/serverUtils";
 import { NextResponse, type NextRequest } from 'next/server'

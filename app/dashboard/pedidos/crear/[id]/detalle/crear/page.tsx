@@ -13,24 +13,6 @@ import { swrSettings } from '@/utils/swr/settings'
 import ErrorPage from '@/app/components/global/skeletons/ErrorPage'
 import OrderCardSkeleton from '@/app/components/skeletons/OrderSkeleton'
 
-interface ProductVariation {
-    id: string
-    color: string
-    size: string
-    stock: number
-    retailPrice: number
-    wholesalePrice: number
-}
-
-interface OrderItem extends ProductVariation {
-    quantity: number
-    price: number
-    discountedPrice?: number
-}
-
-
-
-
 type Param = {
     id: string
 }
@@ -110,7 +92,6 @@ export default function OrderDetail({ params }: { params: Param }) {
     const [productos, setProductos] = useState<ProductWithBasicRelations[]>([])
     const [producto, setProducto] = useState<ProductWithFullRelations | null>(null)
     const [atributos, setAtributos] = useState<AttributeTypesWithAttributes[]>([])
-    const [ordenActual, setOrdenActual] = useState<Order>()
     // Estado para los valores seleccionados de cada filtro
     const [selectedValues, setSelectedValues] = useState<Record<string, string>>({});
     const router = useRouter()
@@ -174,7 +155,6 @@ export default function OrderDetail({ params }: { params: Param }) {
     
     useEffect(() => {
         if (order && !orderErr) {
-            setOrdenActual(order.data)
             setEsMayorista(order.data.tipo_pedido)
         }
     }, [order, orderErr])
@@ -235,6 +215,7 @@ export default function OrderDetail({ params }: { params: Param }) {
                         <form className="grid sm:grid-cols-2 gap-4">
                             {atributos.map((tipoAtributo) => (
                                 <Select
+                                    key={tipoAtributo.id}
                                     value={selectedValues[tipoAtributo.id.toString()] || ''}
                                     onValueChange={(value) => handleValueChange(tipoAtributo.id.toString(), value)}
                                 >
@@ -264,7 +245,7 @@ export default function OrderDetail({ params }: { params: Param }) {
                             <div className="grid gap-4">
                                 {filteredVariations.map((variation) => (
 
-                                    <FilteredVariationCard variation={variation} addToOrder={addToOrder} />
+                                    <FilteredVariationCard key={variation.id} variation={variation} addToOrder={addToOrder} />
                                 ))}
                             </div>
                         </div>

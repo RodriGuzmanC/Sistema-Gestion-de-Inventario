@@ -86,8 +86,6 @@ type Inputs = {
 export default function CreateOrder() {
     const router = useRouter()
 
-    const [formErrors, setFormErrors] = useState<any>({});
-
     const handleSubmitForm: SubmitHandler<Inputs> = async (data) => {
         try {
             // Aqui se crea un objeto "Order" para poder pasarse a el servicio engargado de la creacion de pedidos
@@ -113,7 +111,7 @@ export default function CreateOrder() {
             router.push(`crear/${nuevoPedido.data.id}/detalle/crear`)
         } catch (error) {
             if (error instanceof z.ZodError) {
-                setFormErrors(error.format());
+                alert(error.message)
             } else {
                 toast("Ha ocurrido un error, intentalo mas tarde")
                 console.error("Error inesperado:", error);
@@ -131,7 +129,11 @@ export default function CreateOrder() {
             const cuerpoCliente: Partial<Client> = {
                 nombre: nombreClienteNuevo
             }
-            const nuevoCliente: DataResponse<Client> = await apiRequest({ url: 'clients', method: 'POST', body: cuerpoCliente })
+            const { error } : DataResponse<Client> = await apiRequest({ url: 'clients', method: 'POST', body: cuerpoCliente })
+            if (error) {
+                toast("Error al crear el cliente")
+                throw new Error("Error al crear el cliente")
+            }
             toast("Se ha creado el cliente con exito")
             mutate('clients')
             setIsDialogOpen(false)
@@ -142,18 +144,12 @@ export default function CreateOrder() {
     }
 
     const {
-        register,
         handleSubmit,
-        watch,
         formState: { errors },
         control,
     } = useForm<Inputs>({
         resolver: zodResolver(validationSchema)
     })
-    const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data)
-
-
-
 
     // Hook SWR para obtener los estados de las órdenes
     const { data: clients, error: clientsError, isLoading: clientsLoading } = useSWR<PaginatedResponse<Client>>('clients', () => apiRequest({ url: 'clients' }), swrSettings)
@@ -215,7 +211,7 @@ export default function CreateOrder() {
                                     <DialogHeader>
                                         <DialogTitle>Crea un nuevo cliente</DialogTitle>
                                         <DialogDescription>
-                                            A continuacion ingresa el nombre del nuevo cliente, ya sea una marca o una persona, por ejemplo: "Juan Perez" o "Pepsi"
+                                            A continuacion ingresa el nombre del nuevo cliente, ya sea una marca o una persona, por ejemplo: 'Juan Perez' o 'Pepsi'
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="grid gap-4 py-4">

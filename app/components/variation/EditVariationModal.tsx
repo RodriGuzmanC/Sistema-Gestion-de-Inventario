@@ -11,17 +11,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
-import AttributeTypesService from "@/features/attributes/AttributeTypesService"
-import VariationAttributeService from "@/features/variations/VariationAttributeService"
-import VariationService from "@/features/variations/VariationService"
-import { swrSettings } from "@/utils/swr/settings"
 import { apiRequest } from "@/utils/utils"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import useSWR, { useSWRConfig } from "swr"
-import ErrorPage from "../global/skeletons/ErrorPage"
-import { Plus, Trash2 } from "lucide-react"
+import { useSWRConfig } from "swr"
+import { Plus } from "lucide-react"
 import DeleteAttributeVarModal from "./DeleteAttributeVarModal"
 
 export function EditVariationModal({
@@ -125,11 +119,6 @@ export function EditVariationModal({
         return null;
     };
 
-    async function handleDelete(variatonAttributeID: number) {
-        const itemEliminado = await apiRequest({ url: `products/${variationObj.producto_id}/variations/${variationObj.id}/attributes/${variatonAttributeID}`, method: 'DELETE' })
-        console.log("Item eliminado")
-        console.log(itemEliminado)
-    }
 
     function handleAddNewItem() {
         const nuevasFilas = [...rows,

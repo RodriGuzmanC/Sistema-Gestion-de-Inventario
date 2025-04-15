@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { apiRequest } from "@/utils/utils"
 
 interface CreateFormProps {
@@ -34,7 +33,7 @@ export default function CreateClientForm({ isOpen, onClose }: CreateFormProps) {
 
         setIsSubmitting(true)
         try {
-            const { data, error } = await apiRequest({ url: `clients/`, method: "POST", body: formData })
+            const { error } = await apiRequest({ url: `clients/`, method: "POST", body: formData })
 
 
             if (error) {

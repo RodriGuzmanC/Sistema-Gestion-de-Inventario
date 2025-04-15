@@ -12,13 +12,6 @@ import { enlazarNombreDeProductoConAtributos } from "@/utils/utils";
     items: OrderDetailWithFullRelations[]
   }
   
-  interface OrderItemTable {
-    cantidad: number;
-    descripcion: string;
-    precio: number;
-    importe: number;
-  }
-  
 
   export function OrdersTable({ items }: OrdersTableProps) {
     const total = items.reduce((sum, item) => sum + (item.cantidad * (item.precio_rebajado ?? item.precio)) , 0)
