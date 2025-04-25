@@ -35,21 +35,21 @@ export default function ProductFilter({ products, setProducts }: ProductFilterPr
   const handleSort = () => {
     const newDirection = sortDirection === 'asc' ? 'desc' : 'asc'
     setSortDirection(newDirection)
-    
+
     const sorted = [...products].sort((a, b) => {
       if (newDirection === 'asc') {
         return a.precio_unitario - b.precio_unitario
       }
       return b.precio_unitario - a.precio_unitario
     })
-    
+
     setProducts(sorted)
   }
 
   // Function to handle stock filtering
   const handleStockFilter = (filter: 'all' | 'low' | 'high') => {
     setStockFilter(filter)
-    
+
     const sorted = [...products].sort((a, b) => {
       if (filter === 'low') {
         return a.stock - b.stock
@@ -59,7 +59,7 @@ export default function ProductFilter({ products, setProducts }: ProductFilterPr
       }
       return 0
     })
-    
+
     setProducts(sorted)
   }
 
@@ -72,10 +72,10 @@ export default function ProductFilter({ products, setProducts }: ProductFilterPr
           value={searchTerm}
           onChange={(e) => handleSearch(e.target.value)}
           className="pl-9"
-          
+
         />
       </div>
-      
+
       <div className="flex gap-2">
         <Button
           variant="outline"
@@ -109,7 +109,7 @@ export default function ProductFilter({ products, setProducts }: ProductFilterPr
 
         <Button className="bg-primary">
           <Link href={'productos/crear'}>
-          Crear +
+            Crear +
           </Link>
         </Button>
       </div>

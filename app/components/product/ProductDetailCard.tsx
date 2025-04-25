@@ -1,4 +1,6 @@
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import Link from "next/link"
 
 interface ProductDetailProps {
   product: ProductWithFullRelations
@@ -17,7 +19,14 @@ export function ProductDetailCard({ product }: ProductDetailProps) {
           />
         </div>
         <div className="flex flex-col justify-center gap-2">
-          <h2 className="text-2xl font-semibold tracking-tight">{product.nombre_producto}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-semibold tracking-tight">{product.nombre_producto}</h2>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/dashboard/productos/${product.id}/editar/`}>
+                Editar
+              </Link>
+            </Button>
+          </div>
           <p className="text-sm text-muted-foreground">{product.descripcion}</p>
           <p className="text-sm font-medium">Rango del precio: S/{product.precio_unitario} - S/{product.precio_mayorista}</p>
         </div>

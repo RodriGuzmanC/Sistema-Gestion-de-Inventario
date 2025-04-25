@@ -14,7 +14,8 @@ import useSWR from 'swr'
 import { swrSettings } from '@/utils/swr/settings'
 import ErrorPage from '../global/skeletons/ErrorPage'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CldUploadWidget } from 'next-cloudinary'
+import ImageUploadModal from './ImageUploadWidget'
+import { useRouter } from 'next/navigation'
 
 
 export function EditProductForm({ productId }: { productId: number }) {
@@ -24,6 +25,9 @@ export function EditProductForm({ productId }: { productId: number }) {
     //const [productEdit, setProductEdit] = useState<ProductWithFullRelations>()
     const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
     const [urlUploadedImage, setUrlUploadedImage] = useState<string | null>(null)
+    const [showUploadModal, setShowUploadModal] = useState(false);
+
+    const router = useRouter()
 
     async function handleSubmit(formData: FormData) {
         try {
@@ -40,6 +44,7 @@ export function EditProductForm({ productId }: { productId: number }) {
                 estado_producto_id: 1,
                 precio_mayorista: wholesalePrice,
                 precio_unitario: unitPrice,
+                url_imagen: urlUploadedImage ?? '',
             }
             const productoNuevo = await ProductService.update(productId, producto)
             console.log(`producto editado: ${productoNuevo}`)
@@ -48,7 +53,7 @@ export function EditProductForm({ productId }: { productId: number }) {
 
             setIsSubmitting(true)
 
-            //router.push(`/dashboard/productos/${result.id}/crear/variaciones`)
+            router.push(`/dashboard/productos`)
         } catch (error) {
             console.error('Error creating product:', error)
         } finally {
@@ -110,7 +115,7 @@ export function EditProductForm({ productId }: { productId: number }) {
                     url: `products/${productId}/categories/${id}`,
                     method: 'DELETE'
                 });
-        
+
                 if (error) {
                     throw new Error(error);
                 }
@@ -131,16 +136,13 @@ export function EditProductForm({ productId }: { productId: number }) {
     // Cargar PRODUCTO a editar
     const { data: product, error: errorPro, isLoading: loadPro } = useSWR<DataResponse<ProductWithFullRelations>>('product-edit', () => apiRequest({ url: `products/${productId}` }), swrSettings);
 
-    // Inicializar el estado con las categorías del producto
     useEffect(() => {
-        if (product != undefined) {
-            setCategoriesOfProduct(product.data.categorias_productos)
-            setUrlUploadedImage(product.data.url_imagen ?? null)
-        }
-        if (categories != undefined) {
-            const initialSelected = categoriesOfProduct.map(
-                (category) => category.categoria_id
-            );
+        if (product && categories) {
+            const productCategories = product.data.categorias_productos;
+            setCategoriesOfProduct(productCategories);
+            setUrlUploadedImage(product.data.url_imagen ?? null);
+
+            const initialSelected = productCategories.map((category) => category.categoria_id);
             setSelectedCategories(initialSelected);
         }
     }, [product, categories]);
@@ -191,21 +193,18 @@ export function EditProductForm({ productId }: { productId: number }) {
                     </div>
 
                     <div>
-                        <Label>Sube una imagen</Label>
+                        <Label>Imagen del producto</Label>
                         <div className="mt-2">
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                                {urlUploadedImage ? (
+                                {/*urlUploadedImage ? (
                                     <div>
                                     <img
                                         alt="asd"
                                         src={urlUploadedImage}
                                         width="100"
                                         height="100"
-                                        style={{ objectFit: 'cover' }} // Puedes usar estilos para el tamaño y el ajuste de la imagen
+                                        style={{ objectFit: 'cover' }}
                                     />
-                                    {/*<CldUploadButton uploadPreset="preset_alondra_md" onSuccess={handleEditImage} />*/}
-
-
                                     </div>
                                 ) : (
                                     <CldUploadWidget
@@ -232,7 +231,22 @@ export function EditProductForm({ productId }: { productId: number }) {
                                             );
                                         }}
                                     </CldUploadWidget>
+                                )*/}
+                                {urlUploadedImage && (
+                                    <img src={urlUploadedImage} alt="Producto" className="w-32 h-32 object-cover mb-4" />
                                 )}
+
+                                <Button type="button" variant="default" onClick={() => setShowUploadModal(true)}>
+                                    {urlUploadedImage ? 'Reemplazar imagen' : 'Subir imagen'}
+                                </Button>
+
+                                <ImageUploadModal
+                                    isOpen={showUploadModal}
+                                    onClose={() => setShowUploadModal(false)}
+                                    onImageUploaded={(url) => setUrlUploadedImage(url)}
+                                    mode={urlUploadedImage ? 'reemplazar' : 'subir'}
+                                    currentImageUrl={urlUploadedImage || undefined}
+                                />
                             </div>
                         </div>
                     </div>

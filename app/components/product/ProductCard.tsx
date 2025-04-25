@@ -16,16 +16,17 @@ import { apiRequest } from "@/utils/utils"
 
 interface Props {
   product: ProductWithBasicRelations,
+  mutate: () => void
 }
 
-export function ProductCard({ product }: Props) {
+export function ProductCard({ product, mutate }: Props) {
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false)
 
   async function eliminarProducto(id: number) {
     try {
       //const productoEliminado = await ProductService.delete(id)
       const res: DataResponse<Product> = await apiRequest({
-        url: `/api/products/${id}`, 
+        url: `/products/${id}`, 
         method: 'DELETE'
       });
 
@@ -40,6 +41,7 @@ export function ProductCard({ product }: Props) {
 
       toast("El producto ha sido eliminado correctamente")
       setOpenDeleteModal(false);
+      mutate();
     } catch (error) {
       toast("Ha ocurrido un error")
       console.error("Ha ocurrido un error al eliminar el producto", error)

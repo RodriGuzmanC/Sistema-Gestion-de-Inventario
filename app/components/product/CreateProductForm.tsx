@@ -17,156 +17,152 @@ import { swrSettings } from '@/utils/swr/settings';
 import ImageUploadModal from './ImageUploadWidget';
 
 export function CreateProductForm() {
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter();
 
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  // Form state
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [unitPrice, setUnitPrice] = useState('');
+  const [wholesalePrice, setWholesalePrice] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [urlUploadedImage, setUrlUploadedImage] = useState<string | null>(null);
 
-  const handleOpenModal = (): void => {
-    setIsModalOpen(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Obtener categorías
+  const { data: categories, error, isLoading } = useSWR('categories', () =>
+    apiRequest({ url: 'categories' }), swrSettings
+  );
+
+  const handleCategoryToggle = (id: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
+    );
   };
 
-  const handleCloseModal = (): void => {
-    setIsModalOpen(false);
-  };
-
-  const handleImageUploaded = (url: string): void => {
-    setUrlUploadedImage(url);
-    console.log('Imagen cargada:', url);
-  };
-
-  async function handleSubmit(formData: FormData) {
+  const handleSubmit = async () => {
     try {
+      setIsSubmitting(true);
 
-      const name = formData.get('name') as string | null || ''
-      const description = formData.get('description') as string | null || ''
-      const unitPrice = parseFloat(formData.get('unitPrice') as string | null || '0')
-      const wholesalePrice = parseFloat(formData.get('wholesalePrice') as string | null || '0')
-      const selectedCategories = formData.getAll('categories') as string[];
-
-      // Prepara los datos para crear el producto
       const producto: Partial<Product> = {
         nombre_producto: name,
         descripcion: description,
         estado_producto_id: 1,
-        precio_mayorista: wholesalePrice,
-        precio_unitario: unitPrice,
+        precio_unitario: parseFloat(unitPrice) || 0,
+        precio_mayorista: parseFloat(wholesalePrice) || 0,
         url_imagen: urlUploadedImage ?? '',
-      }
+      };
 
-      // Peticion para crear un nuevo registro
-      const { data: productoNuevo, error }: DataResponse<Product> = await apiRequest({ url: 'products', method: 'POST', body: producto })
-      if (error) {
-        throw new Error(error)
-      }
+      const { data: productoNuevo, error } = await apiRequest({
+        url: 'products',
+        method: 'POST',
+        body: producto,
+      });
 
-      console.log('producto nuevo: ', productoNuevo.id)
-      // Prepara los datos para crear las categorías del producto
-      const categoriasProducto: Partial<CategoryProduct>[] = selectedCategories.map((selectedCategory) => ({
+      if (error) throw new Error(error);
+
+      const categoriasProducto = selectedCategories.map((id) => ({
         producto_id: productoNuevo.id,
-        categoria_id: parseInt(selectedCategory, 10),
+        categoria_id: parseInt(id, 10),
       }));
 
-      await Promise.all(categoriasProducto.map(async (categoria) => {
-        const { data, error } = await apiRequest({ url: `products/${productoNuevo.id}/categories`, method: 'POST', body: categoria })
-        console.log('categoria nueva: ', data)
-        if (error) {
-          throw new Error(error)
-        }
-      }))
+      await Promise.all(
+        categoriasProducto.map((categoria) =>
+          apiRequest({
+            url: `products/${productoNuevo.id}/categories`,
+            method: 'POST',
+            body: categoria,
+          })
+        )
+      );
 
-      toast("Se ha creado exitosamente")
-      router.push(`${productoNuevo.id}/variaciones/crear`)
-      setIsSubmitting(true)
-
-      //router.push(`/dashboard/productos/${result.id}/crear/variaciones`)
-    } catch (error) {
-      console.error('Error creating product:', error)
+      toast('Se ha creado exitosamente');
+      router.push(`${productoNuevo.id}/variaciones/crear`);
+    } catch (err) {
+      console.error('Error creating product:', err);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const [urlUploadedImage, setUrlUploadedImage] = useState<string | null>(null);
-
-  const { data: categories, error, isLoading } = useSWR<PaginatedResponse<Category>>('categories', () => apiRequest({ url: 'categories' }), swrSettings)
-
-  if (error) return <ErrorPage></ErrorPage>
-  if (isLoading || categories == undefined) return <SharedFormSkeleton></SharedFormSkeleton>
+  if (error) return <ErrorPage />;
+  if (isLoading || !categories) return <SharedFormSkeleton />;
 
   return (
     <div className="max-w-2xl mx-auto overflow-auto">
-
       <h1 className="text-2xl font-bold mb-6">Crea una nueva prenda</h1>
-      <form action={handleSubmit} className="space-y-6">
+
+      <div className="space-y-6">
         <div className="space-y-4">
           <div>
-            <Label htmlFor="name">Ingresa el nombre de la nueva prenda</Label>
-            <Input id="name" name="name" required />
+            <Label htmlFor="name">Nombre</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
 
           <div>
-            <Label htmlFor="description">Ingresa una descripcion para esa prenda (opcional)</Label>
-            <Textarea id="description" name="description" required />
+            <Label htmlFor="description">Descripción</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </div>
 
+          <div>
+            <Label htmlFor="unitPrice">Precio unitario</Label>
+            <Input
+              type="number"
+              id="unitPrice"
+              value={unitPrice}
+              onChange={(e) => setUnitPrice(e.target.value)}
+            />
+          </div>
 
-          <div className='flex flex-col space-y-2'>
-            <button onClick={handleOpenModal}>Subir Imagen</button>
-            {/*<div className="mt-2">*/}
-            {urlUploadedImage ? (
+          <div>
+            <Label htmlFor="wholesalePrice">Precio mayorista</Label>
+            <Input
+              type="number"
+              id="wholesalePrice"
+              value={wholesalePrice}
+              onChange={(e) => setWholesalePrice(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <Button type="button" onClick={() => setIsModalOpen(true)}>
+              Subir Imagen
+            </Button>
+            {urlUploadedImage && (
               <img
-                alt="asd"
                 src={urlUploadedImage}
+                alt="Imagen subida"
                 width="100"
                 height="100"
-                style={{ objectFit: 'cover' }} // Puedes usar estilos para el tamaño y el ajuste de la imagen
+                style={{ objectFit: 'cover' }}
               />
-            ) : (
-              <div>
-                {/* <CldUploadWidget
-                uploadPreset="preset_alondra_md"
-                options={{
-                  cloudName: 'daxgq3gzj',
-                  apiKey: 'sZsXwdczsIDmTCzt_moZIzrE1bA',
-
-                }}
-                onSuccess={(result) => {
-                  let imageUrl = null;
-                  if (typeof result.info !== 'string') {
-                    imageUrl = result?.info?.secure_url ?? null;
-                    console.log('Imagen cargada correctamente:', imageUrl);
-                  }
-                  setUrlUploadedImage(imageUrl)
-
-                }}>
-                {({ open }) => {
-                  return (
-                    <Button variant={'default'} onClick={(e) => {
-                      e.preventDefault();
-                      () => open()
-                    }}>
-                      Upload an Image
-                    </Button>
-                  );
-                }}
-              </CldUploadWidget> */}
-                <ImageUploadModal
-                  isOpen={isModalOpen}
-                  onClose={handleCloseModal}
-                  onImageUploaded={handleImageUploaded}
-                />
-              </div>
             )}
+            <ImageUploadModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onImageUploaded={(url) => {
+                setUrlUploadedImage(url);
+                setIsModalOpen(false);
+              }}
+            />
           </div>
 
           <div>
-            <Label>Elige la categoria a la que pertenece esta prenda</Label>
+            <Label>Categorías</Label>
             <div className="mt-2 space-y-2">
               {categories.data.map((category: Category) => (
                 <div key={category.id} className="flex items-center space-x-2">
-                  <Checkbox id={category.id.toString()} name="categories" value={category.id} />
-                  <Label htmlFor={category.id.toString()}>{category.nombre}</Label>
+                  <Checkbox
+                    id={`category-${category.id}`}
+                    checked={selectedCategories.includes(category.id.toString())}
+                    onCheckedChange={() => handleCategoryToggle(category.id.toString())}
+                  />
+                  <Label htmlFor={`category-${category.id}`}>{category.nombre}</Label>
                 </div>
               ))}
             </div>
@@ -174,9 +170,10 @@ export function CreateProductForm() {
         </div>
 
         <Button
-          type="submit"
-          className="w-full"
+          type="button"
+          onClick={handleSubmit}
           disabled={isSubmitting}
+          className="w-full"
         >
           {isSubmitting ? (
             <>
@@ -187,8 +184,7 @@ export function CreateProductForm() {
             'Crear'
           )}
         </Button>
-      </form>
+      </div>
     </div>
-  )
+  );
 }
-

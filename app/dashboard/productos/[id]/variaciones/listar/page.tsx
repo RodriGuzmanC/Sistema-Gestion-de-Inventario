@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { EditVariationModal } from "@/app/components/variation/EditVariationModal"
 import DeleteVariationModal from "@/app/components/variation/DeleteVariationModal"
 
+
 type Params = {
     id: string
 }
@@ -21,7 +22,7 @@ export default function VariationsList({ params }: { params: Params }) {
     const [filteredVariations, setFilteredVariations] = useState<VariationWithRelations[]>([])
 
     // Cargar producto
-    const { data: product, error, isLoading } = useSWR<DataResponse<ProductWithFullRelations>>('product', 
+    const { data: product, error, isLoading } = useSWR<DataResponse<ProductWithFullRelations>>('product',
         () => apiRequest({ url: 'products/' + params.id }), swrSettings)
 
     // Actualizar filteredVariations cuando product cambie
@@ -82,7 +83,9 @@ export default function VariationsList({ params }: { params: Params }) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[400px]">Nombre</TableHead>
+                            <TableHead className="w-[400px]">Nombre
+                                
+                            </TableHead>
                             <TableHead>Precio unitario</TableHead>
                             <TableHead>Precio mayorista</TableHead>
                             <TableHead>Stock</TableHead>
