@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Moon, Sun } from 'lucide-react'
 import { login } from '@/features/auth/SignWithPassword'
-import GoogleSignInButton from '../components/OneTapGoogle'
 
 
 export default function ModernLogin() {
@@ -47,7 +46,6 @@ export default function ModernLogin() {
                   O continúa con
                 </span>
               </div>
-              <GoogleSignInButton />
             </div>
           </div>
           <div className="space-y-2">
