@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { CalendarDays, Eye, MoreVertical, Package, Trash, Truck } from 'lucide-react'
+import { CalendarDays, Eye, MoreVertical, Package, Pen, Trash, Truck } from 'lucide-react'
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -8,7 +8,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { formatearFechaLarga } from '@/utils/utils'
+import { apiRequest, formatearFechaLarga } from '@/utils/utils'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { toast } from 'sonner'
 
 
 
@@ -48,10 +49,23 @@ const statusMap = {
     },
   }
 
-export default function OrderCard({ order }: { order: OrderWithBasicRelations }) {
+export default function OrderCard({ order, mutate }: { order: OrderWithBasicRelations, mutate: () => void }) {
     const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false)
-    function eliminar(id: number) {
-        console.log("Eliminando a:", id)
+
+    async function eliminar(id: number) {
+        try {
+          const res : DataResponse<Order> = await apiRequest({ url: `orders/${id}`, method: 'DELETE' })
+          if (res.error){
+            throw new Error(res.error)
+          }
+          console.log("Pedido eliminado:", res.data)
+          toast.success("Pedido eliminado correctamente")
+          mutate()
+          setOpenDeleteModal(false)
+        } catch (error) {
+          console.error("Error eliminando el pedido:", error)
+          toast.error("Error al eliminar el pedido, intentalo mas tarde")
+        }
     }
 
     const status = statusMap[order.estado_pedido_id as 1 | 2 | 3]
@@ -85,6 +99,12 @@ export default function OrderCard({ order }: { order: OrderWithBasicRelations })
               <DropdownMenuItem>
                 <Eye className="mr-2 h-4 w-4" />
                 <span>Ver detalle</span>
+              </DropdownMenuItem>
+            </Link>
+            <Link href={`pedidos/${order.id}/editar`}>
+              <DropdownMenuItem>
+                <Pen className="mr-2 h-4 w-4" />
+                <span>Editar</span>
               </DropdownMenuItem>
             </Link>
             <DropdownMenuItem onClick={() => setOpenDeleteModal(true)}>
@@ -151,12 +171,7 @@ export default function OrderCard({ order }: { order: OrderWithBasicRelations })
               </TooltipProvider>
             </div>
 
-            <Link href={`pedidos/${order.id}/detalle`} className="sm:self-end">
-              <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                <Eye className="mr-2 h-4 w-4" />
-                Ver detalles
-              </Button>
-            </Link>
+            
           </div>
         </div>
 

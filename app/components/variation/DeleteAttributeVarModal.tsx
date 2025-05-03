@@ -2,26 +2,31 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogFooter, DialogContent, DialogHeader, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { apiRequest } from '@/utils/utils';
 import { Trash, Trash2 } from 'lucide-react';
-import React from 'react';
-import { useSWRConfig } from 'swr';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function DeleteAttributeVarModal(
-  {variationId, productId, varAttributeId} : 
-  {variationId: number, productId: number, varAttributeId: number}
+  {variationId, productId, varAttributeId, mutate, setParentModalOpen, handleDeleteRow} : 
+  {
+    variationId: number, 
+    productId: number, 
+    varAttributeId: number, 
+    mutate: () => void, 
+    setParentModalOpen: (open: boolean) => void,
+    handleDeleteRow: (id: number) => void
+  }
 ) {
-  const { mutate } = useSWRConfig()
+
+  const [open, setOpen] = useState(false)
 
   async function handleDelete() {
-    const itemEliminado = await apiRequest(
-        { url: `products/${productId}/variations/${variationId}/attributes/${varAttributeId}`, method: 'DELETE' }
-    )
-    console.log("Item eliminado")
-    console.log(itemEliminado)
-    mutate('product')
+    setOpen(false);
+    handleDeleteRow(varAttributeId)
+
 }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"

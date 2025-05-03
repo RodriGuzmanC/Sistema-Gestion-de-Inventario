@@ -14,20 +14,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest } from "@/utils/utils"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { useSWRConfig } from "swr"
 import { Plus } from "lucide-react"
 import DeleteAttributeVarModal from "./DeleteAttributeVarModal"
 
 export function EditVariationModal({
     variationObj,
-    attributeTypes
+    attributeTypes,
+    mutate
 }: {
     variationObj: VariationWithRelations,
-    attributeTypes: AttributeTypesWithAttributes[]
+    attributeTypes: AttributeTypesWithAttributes[],
+    mutate: () => void
 }) {
     const [precioUnitario, setPrecioUnitario] = useState<number>(variationObj.precio_unitario)
     const [precioMayorista, setPrecioMayorista] = useState<number>(variationObj.precio_mayorista)
     const [stock, setStock] = useState<number>(variationObj.stock)
+    const [open, setOpen] = useState(false); // <-- nuevo estado
 
     // Estado local para manejar las filas de atributos seleccionados
     const [rows, setRows] = useState<
@@ -38,8 +40,6 @@ export function EditVariationModal({
     const [initialRows, setInitialRows] = useState<
         { id: number; tipoId: number | null; atributoId: number | null }[]
     >([])
-
-    const { mutate } = useSWRConfig()
 
     async function guardarCambios() {
         // Edita los campos de precios y stock de la variacion
@@ -54,30 +54,46 @@ export function EditVariationModal({
             variacionCuerpo.precio_mayorista !== variationObj.precio_mayorista ||
             variacionCuerpo.precio_unitario !== variationObj.precio_unitario ||
             variacionCuerpo.stock !== variationObj.stock;
-        
-        if (cambiosDetectados){
+
+        if (cambiosDetectados) {
             const variacionEditada = await apiRequest({ url: `products/${variationObj.producto_id}/variations/${variationObj.id}`, body: variacionCuerpo, method: 'PUT' })
             // Datos editados mostrados en consola
             console.log("Datos de la variacion editada: ", variacionEditada)
         }
 
-        // Verifica las filas añadidas o modificadas
+        // 2. Eliminar atributos que ya no están
+        const rowsIds = rows.map(row => row.id).filter(id => id !== 0); // ignorar los nuevos
+        const eliminados = initialRows.filter(initialRow => !rowsIds.includes(initialRow.id));
+
+        for (const eliminado of eliminados) {
+            await apiRequest({
+                url: `products/${variationObj.producto_id}/variations/${variationObj.id}/attributes/${eliminado.id}`,
+                method: 'DELETE'
+            });
+            console.log("Atributo eliminado:", eliminado);
+        }
+
+        // 3. Agregar nuevos y editar existentes
         for (const row of rows) {
-            // Si el ID es 0, es una nueva fila
             if (row.id === 0) {
-                // Crear nuevo atributo de variación
-                const variacionAtributoNueva: Partial<VariationAttribute> = {
+                // Nuevo atributo
+                const nuevoAtributo: Partial<VariationAttribute> = {
                     variacion_id: variationObj.id,
                     atributo_id: row.atributoId ?? 0
-                }
-                const atributosDeVariacion = await apiRequest({ 
-                    url: `products/${variationObj.producto_id}/variations/${variationObj.id}/attributes`, 
-                    body: variacionAtributoNueva, 
-                    method: 'POST' 
-                })
-                console.log("Nuevo atributo de la variación añadida: ", atributosDeVariacion)
+                };
+                const creado: DataResponse<VariationAttribute> = await apiRequest({
+                    url: `products/${variationObj.producto_id}/variations/${variationObj.id}/attributes`,
+                    body: nuevoAtributo,
+                    method: 'POST'
+                });
+                // Actualiza el estado de rows con el ID creado
+                setRows(prev =>
+                    prev.map(r =>
+                        r === row ? { ...r, id: creado.data.id } : r
+                    )
+                );
+                console.log("Nuevo atributo de variación añadido:", creado);
             } else {
-                // Compara si hay cambios en la fila editada
                 const initialRow = initialRows.find((r) => r.id === row.id);
                 if (initialRow) {
                     if (row.tipoId !== initialRow.tipoId || row.atributoId !== initialRow.atributoId) {
@@ -85,18 +101,21 @@ export function EditVariationModal({
                             variacion_id: variationObj.id,
                             atributo_id: row.atributoId ?? 0
                         }
-                        const atributosDeVariacion = await apiRequest({ 
-                            url: `products/${variationObj.producto_id}/variations/${variationObj.id}/attributes/${row.id}`, 
-                            body: variacionAtributoEditada, 
-                            method: 'PUT' 
+                        const atributosDeVariacion = await apiRequest({
+                            url: `products/${variationObj.producto_id}/variations/${variationObj.id}/attributes/${row.id}`,
+                            body: variacionAtributoEditada,
+                            method: 'PUT'
                         })
                         console.log("Datos del atributo de la variacion editada: ", atributosDeVariacion)
                     }
                 }
             }
         }
-        mutate('product')
+
+        mutate()
         toast("Se ha editado correctamente")
+        setOpen(false); // <-- cierra el modal
+
     }
 
     // Actualizar el valor de la fila cuando cambia el desplegable
@@ -131,6 +150,11 @@ export function EditVariationModal({
         console.log(rows)
     }
 
+    function handleDeleteRow(varAttributeId: number) {
+        const nuevasFilas = rows.filter((row) => row.id !== varAttributeId)
+        setRows(nuevasFilas)
+    }
+
     useEffect(() => {
         if (variationObj.variaciones_atributos.length > 0 && attributeTypes) {
             const initial = variationObj.variaciones_atributos.map((attr) => ({
@@ -144,7 +168,7 @@ export function EditVariationModal({
     }, [attributeTypes]);
 
     return (
-        <Dialog >
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button variant="outline" >Editar variacion</Button>
             </DialogTrigger>
@@ -199,11 +223,14 @@ export function EditVariationModal({
                             </Select>
 
                             {/* Boton de eliminar */}
-                            
+
                             <DeleteAttributeVarModal
                                 productId={variationObj.producto_id}
                                 variationId={variationObj.id}
                                 varAttributeId={row.id}
+                                mutate={mutate}
+                                setParentModalOpen={setOpen}
+                                handleDeleteRow={handleDeleteRow}
                             ></DeleteAttributeVarModal>
                         </div>
                     ))}

@@ -101,6 +101,7 @@ export function VariationCard({
               <EditVariationModal
                 variationObj={variation}
                 attributeTypes={TypesWithAttributes.data}
+                mutate={mutate}
               />
             )}
 

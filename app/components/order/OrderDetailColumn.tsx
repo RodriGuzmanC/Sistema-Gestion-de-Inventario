@@ -34,12 +34,12 @@ export default function OrderDetailsColumn({
       <CardHeader className="space-y-1">
         <CardTitle className="flex items-center gap-2 mb-3 text-xl">
           <ShoppingCart className="h-5 w-5" />
-          Detalles del pedido
+          Detalles de la venta
         </CardTitle>
         <Alert variant="default" className="mt-2">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-xs text-muted-foreground">
-            Puedes cambiar el precio en el detalle del pedido, esto no afectará el precio del producto.
+            Puedes cambiar el precio en el detalle de la venta, esto no afectará el precio del producto.
           </AlertDescription>
         </Alert>
       </CardHeader>
@@ -81,7 +81,7 @@ export default function OrderDetailsColumn({
           size="lg"
         >
           <ShoppingCart className="h-4 w-4" />
-          Crear pedido
+          Crear nueva venta
         </Button>
       </CardFooter>
     </Card>
