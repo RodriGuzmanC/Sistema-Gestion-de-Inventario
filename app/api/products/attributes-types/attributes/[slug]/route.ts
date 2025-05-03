@@ -1,9 +1,9 @@
 import AttributeService from '@/features/attributes/AttributeService';
 import { handleError } from '@/utils/serverUtils';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export async function GET(
-    request: NextRequest,
+    _request: Request,
     { params }: { params: { slug: string } } // Asegúrate de que el parámetro sea 'slug'
 ) {
     const slug = parseInt(params.slug); // Obtén el slug directamente
@@ -49,7 +49,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-    request: Request,
+    _request: Request,
     { params }: { params: { slug: string } } // Asegúrate de que el parámetro sea 'slug'
 ) {
     const slug = parseInt(params.slug); // Obtén el slug directamente

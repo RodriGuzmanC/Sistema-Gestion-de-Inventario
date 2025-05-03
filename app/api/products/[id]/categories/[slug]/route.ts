@@ -3,6 +3,7 @@ import { handleError } from '@/utils/serverUtils';
 import { NextResponse } from 'next/server';
 
 export async function GET(
+    _request: Request,
     { params }: { params: { id: string, slug: string } } // Asegúrate de que el parámetro sea 'id'
 ) {
     const productId = params.id; // Obtén el id directamente
@@ -49,6 +50,7 @@ export async function PUT(
 }
 
 export async function DELETE(
+    _request: Request,
     { params }: { params: { slug: string } } // Asegúrate de que el parámetro sea 'id'
 ) {
     const categoryId = params.slug; // Obtén el id directamente
