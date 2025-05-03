@@ -1,4 +1,5 @@
 import createSupabaseClient from '@/utils/dbClient';
+import { makePagination } from '@/utils/serverUtils';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 
@@ -41,14 +42,13 @@ export default new class OrderRepository {
         }
 
         // Obtener el total de items
-        const { count: totalItems } = await this.client
+        /*const { count: totalItems } = await this.client
             .from('pedidos')
-            .select('*', { count: 'exact' }); // Esto obtiene solo el total sin traer los registros completos
+            .select('*', { count: 'exact' });
         if (!totalItems){
             throw new Error('Orders not found'); 
         }
 
-        // Calcular el total de páginas
         const totalPaginas = Math.ceil(totalItems / itemsPerPage);
         const paginatedData: PaginatedResponse<OrderWithFullRelations> = {
             data: data || [],
@@ -58,9 +58,11 @@ export default new class OrderRepository {
                 items_por_pagina: itemsPerPage,
                 total_paginas: totalPaginas,
             },
-        };
+        };*/
+        
+        return makePagination<OrderWithFullRelations>(this.client, data, 'pedidos', pages, itemsPerPage, 'categoria_pedido', category)
 
-        return paginatedData;
+        //return paginatedData;
     }
 
     // Obtener un pedido específico por su ID

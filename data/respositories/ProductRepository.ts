@@ -1,4 +1,5 @@
 import createSupabaseClient from '@/utils/dbClient';
+import { makePagination } from '@/utils/serverUtils';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export default new class ProductRepository {
@@ -20,11 +21,15 @@ export default new class ProductRepository {
             .select('*, galerias(*), estados_productos(*), variaciones(*, variaciones_atributos(*, atributos(*, tipos_atributos(*)))), categorias_productos(*, categorias(*)), publicaciones(*, redes(*))')
             .range(startIndex, endIndex); // Paginación
 
+            if (error) {
+                console.error('Error fetching products:', error);
+                throw new Error('Unable to fetch products');
+            }
 
         // Obtener el total de items
-        const { count: totalItems } = await this.client
+        /*const { count: totalItems } = await this.client
             .from('productos')
-            .select('*', { count: 'exact' }); // Esto obtiene solo el total sin traer los registros completos
+            .select('*', { count: 'exact' });
         if (!totalItems){
             throw new Error('Products not found'); 
         }
@@ -45,7 +50,10 @@ export default new class ProductRepository {
             console.error('Error fetching products:', error);
             throw new Error('Unable to fetch products');
         }
-        return paginatedData;
+        return paginatedData;*/
+
+        return makePagination<ProductWithFullRelations>(this.client, data, 'productos', pages, itemsPerPage)
+        
     }
 
     // Obtener todos los productos
