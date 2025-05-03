@@ -57,8 +57,8 @@ export async function makePagination<T>(
         totalItems = count
     }
     
-    if (!totalItems){
-        throw new Error(`${table} not found`); 
+    if (totalItems == null || totalItems == undefined) {
+        throw new Error(`${table} not found, total items: ${totalItems}`); 
     }
     // Calcular el total de páginas
     const totalPaginas = Math.ceil(totalItems / itemsPerPage);
