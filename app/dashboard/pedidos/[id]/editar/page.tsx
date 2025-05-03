@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
@@ -20,7 +20,9 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover'
+
 import { toast } from 'sonner'
+
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -81,7 +83,11 @@ type Inputs = {
     clientId: string;
 }
 
-export default function CreateOrder() {
+type Param = {
+    id: string
+  }
+
+export default function CreateOrder({ params }: { params: Param }) {
     const router = useRouter()
 
     const handleSubmitForm: SubmitHandler<Inputs> = async (data) => {
@@ -93,9 +99,7 @@ export default function CreateOrder() {
                 tipo_pedido: data.orderType == "mayorista" || data.orderType == "minorista"
                 ? data.orderType
                 : "mayorista",
-                // Categoria Venta
-                categoria_pedido: 'salida',
-                
+                categoria_pedido: "entrada",
                 fecha_pedido: data.orderDate.toString(),
                 fecha_entrega: data.deliveryDate.toString(),
                 cliente_id: parseInt(data.clientId, 10)
@@ -103,15 +107,12 @@ export default function CreateOrder() {
 
             console.log('Form Data:', formData)
             // Crea el pedido
-            const { data: newOrder, error}: DataResponse<Order> = await apiRequest({ url: 'orders', method: 'POST', body: formData })
-            if(error) {
-                throw new Error(error)
-            }
-            console.log("Nuevo pedido")
-            console.log(newOrder)
-            toast("Se ha creado con exito")
+            const nuevoPedido: DataResponse<Order> = await apiRequest({ url: `orders/${params.id}`, method: 'PUT', body: formData })
+            console.log("Pedido editado")
+            console.log(nuevoPedido)
+            toast("Se ha editado con exito")
             // Navigate to next page
-            router.push(`crear/${newOrder.id}/detalle/crear`)
+            router.push(`/dashboard/pedidos`)
         } catch (error) {
             if (error instanceof z.ZodError) {
                 alert(error.message)
@@ -133,8 +134,9 @@ export default function CreateOrder() {
                 nombre: nombreClienteNuevo
             }
             const { error } : DataResponse<Client> = await apiRequest({ url: 'clients', method: 'POST', body: cuerpoCliente })
-            if(error){
-                throw new Error(error)
+            if (error) {
+                toast("Error al crear el cliente")
+                throw new Error("Error al crear el cliente")
             }
             toast("Se ha creado el cliente con exito")
             mutate('clients')
@@ -149,44 +151,53 @@ export default function CreateOrder() {
         handleSubmit,
         formState: { errors },
         control,
+        reset
     } = useForm<Inputs>({
         resolver: zodResolver(validationSchema)
     })
 
-
-    // Hook SWR para obtener todas las solicitudes en paralelo
-    const { data, error, isLoading } = useSWR(
-        ['clients', 'order-statuses', 'delivery-methods'],
-        async () => {
-            const clientsPromise = apiRequest({ url: 'clients' });
-            const statusesPromise = apiRequest({ url: 'orders/order-statuses/' });
-            const deliveryMethodsPromise = apiRequest({ url: 'orders/delivery-methods/' });
-
-            const [clients, statuses, deliveryMethods] = await Promise.all([clientsPromise, statusesPromise, deliveryMethodsPromise]);
-
-            return { 
-                clients: clients as PaginatedResponse<Client>,
-                statuses: statuses as PaginatedResponse<OrderStatus>,
-                deliveryMethods: deliveryMethods as PaginatedResponse<DeliveryMethod>
-             };
-        },
+    // Hook SWR para obtener el pedido
+    const { data: orderToEdit, error: orderError, isLoading: isOrderLoading } = useSWR<DataResponse<Order>>('order-edit',
+        () => apiRequest({ url: `orders/${params.id}` }),
         swrSettings
     );
 
+    useEffect(() => {
+        if (orderToEdit) {
+            reset({
+                orderStatusId: orderToEdit.data.estado_pedido_id.toString(),
+                deliveryMethodId: orderToEdit.data.metodo_entrega_id.toString(),
+                orderType: orderToEdit.data.tipo_pedido,
+                orderDate: new Date(orderToEdit.data.fecha_pedido),
+                deliveryDate: new Date(orderToEdit.data.fecha_entrega),
+                clientId: orderToEdit.data.cliente_id.toString()
+            });
+        }
+    }, [orderToEdit, reset]);
+
+    // Hook SWR para obtener los estados de las órdenes
+    const { data: clients, error: clientsError, isLoading: clientsLoading } = useSWR<PaginatedResponse<Client>>('clients', () => apiRequest({ url: 'clients' }), swrSettings)
+
+    // Hook SWR para obtener los estados de las órdenes
+    const { data: orderStatuses, error: orderStatusesError, isLoading: isLoadingOrderStatuses } = useSWR<PaginatedResponse<OrderStatus>>('order-statuses', () => apiRequest({ url: 'orders/order-statuses/' }), swrSettings)
+
+    // Hook SWR para obtener los métodos de entrega
+    const { data: deliveryMethods, error: deliveryMethodsError, isLoading: isLoadingDeliveryMethods } = useSWR<PaginatedResponse<DeliveryMethod>>('delivery-methods', () => apiRequest({ url: 'orders/delivery-methods/' }), swrSettings)
+
     // Manejo de errores
-    if (error) {
+    if (orderStatusesError || deliveryMethodsError || clientsError || orderError) {
         return <ErrorPage />;
     }
 
     // Manejo de carga
-    if (isLoading || !data) {
-        return <OrderCardSkeleton />;
+    if (isLoadingOrderStatuses || isLoadingDeliveryMethods || clientsLoading || isOrderLoading || !orderStatuses || !deliveryMethods || !clients || !orderToEdit) {
+        return <OrderCardSkeleton key={1} />
     }
+
 
     return (
         <div className="max-w-md space-y-6">
-            <h1 className="text-2xl font-bold">Registar venta</h1>
-            <p>Aqui puedes registrar las ventas que vayas realizando</p>
+            <h1 className="text-2xl font-bold">Editar pedido</h1>
 
             <form onSubmit={handleSubmit(handleSubmitForm)}>
                 <div className="space-y-4">
@@ -202,7 +213,7 @@ export default function CreateOrder() {
                                             <SelectValue placeholder="Selecciona el cliente aqui" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {data.clients.data.map((client) => (
+                                            {clients.data.map((client) => (
                                                 <SelectItem key={client.id} value={client.id.toString()}>
                                                     {client.nombre}
                                                 </SelectItem>
@@ -252,7 +263,7 @@ export default function CreateOrder() {
 
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Selecciona el estado de la venta</label>
+                        <label className="text-sm font-medium">Selecciona el estado del pedido</label>
                         <Controller
                             name='orderStatusId'
                             control={control}
@@ -262,7 +273,7 @@ export default function CreateOrder() {
                                         <SelectValue placeholder="Selecciona el estado aqui" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {data.statuses.data.map((status) => (
+                                        {orderStatuses.data.map((status) => (
                                             <SelectItem key={status.id} value={status.id.toString()}>
                                                 {status.nombre}
                                             </SelectItem>
@@ -285,7 +296,7 @@ export default function CreateOrder() {
                                         <SelectValue placeholder="Selecciona el metodo aqui" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {data.deliveryMethods.data.map((method) => (
+                                        {deliveryMethods.data.map((method) => (
                                             <SelectItem key={method.id} value={method.id.toString()}>
                                                 {method.nombre}
                                             </SelectItem>
@@ -298,7 +309,7 @@ export default function CreateOrder() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Selecciona el tipo de venta</label>
+                        <label className="text-sm font-medium">Selecciona el tipo de pedido</label>
                         <Controller
                             name='orderType'
                             control={control}
@@ -308,8 +319,8 @@ export default function CreateOrder() {
                                         <SelectValue placeholder="Selecciona el tipo aqui" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="1">Mayorista</SelectItem>
-                                        <SelectItem value="0">Minorista</SelectItem>
+                                        <SelectItem value="mayorista">Mayorista</SelectItem>
+                                        <SelectItem value="minorista">Minorista</SelectItem>
                                     </SelectContent>
                                 </Select>
                             )}
@@ -319,7 +330,7 @@ export default function CreateOrder() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Fecha de emision de la venta</label>
+                            <label className="text-sm font-medium">Fecha de pedido</label>
                             <Controller
                                 name="orderDate"
                                 control={control}
@@ -354,7 +365,7 @@ export default function CreateOrder() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Fecha de entrega de la venta</label>
+                            <label className="text-sm font-medium">Fecha de entrega</label>
                             <Controller
                                 name="deliveryDate"
                                 control={control}
@@ -393,7 +404,7 @@ export default function CreateOrder() {
                         className="w-full"
                         type='submit'
                     >
-                        Siguiente
+                        Guardar cambios
                     </Button>
                 </div>
             </form >

@@ -21,8 +21,10 @@ export default function VariationsList({ params }: { params: Params }) {
 
     const [filteredVariations, setFilteredVariations] = useState<VariationWithRelations[]>([])
 
+
+
     // Cargar producto
-    const { data: product, error, isLoading } = useSWR<DataResponse<ProductWithFullRelations>>('product',
+    const { data: product, error, isLoading, mutate } = useSWR<DataResponse<ProductWithFullRelations>>('product',
         () => apiRequest({ url: 'products/' + params.id }), swrSettings)
 
     // Actualizar filteredVariations cuando product cambie
@@ -65,6 +67,8 @@ export default function VariationsList({ params }: { params: Params }) {
         return `${product.data.nombre_producto} ${attributes}`
     }
 
+    
+
     return (
         <div className="container mx-auto py-6">
             <h1 className="mb-6 text-2xl font-bold">Listado de variaciones</h1>
@@ -84,7 +88,7 @@ export default function VariationsList({ params }: { params: Params }) {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-[400px]">Nombre
-                                
+
                             </TableHead>
                             <TableHead>Precio unitario</TableHead>
                             <TableHead>Precio mayorista</TableHead>
@@ -106,6 +110,7 @@ export default function VariationsList({ params }: { params: Params }) {
                                         <EditVariationModal
                                             variationObj={variation}
                                             attributeTypes={attributeTypes.data}
+                                            mutate={mutate}
                                             key={variation.id}></EditVariationModal>
                                         <DeleteVariationModal
                                             variationId={variation.id}

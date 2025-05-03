@@ -2,32 +2,34 @@
 
 import ErrorPage from "@/app/components/global/skeletons/ErrorPage"
 import OrderCardSkeleton from "@/app/components/skeletons/OrderSkeleton"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { swrSettings } from "@/utils/swr/settings"
 import { apiRequest, calcularStockTotal, calcularSubTotal, formatearFechaLarga } from "@/utils/utils"
+import Link from "next/link"
 import useSWR from "swr"
 
 type Param = {
-    id: string
+  id: string
 }
 
-export default function OrderDetail({params} : {params: Param}) {
+export default function OrderDetail({ params }: { params: Param }) {
 
 
   // Hook SWR para obtener los estados de las órdenes
-  const { data: order, error, isLoading } = useSWR<DataResponse<OrderWithFullRelations>>('order-detail', () => apiRequest({url: `orders/${params.id}`}), swrSettings)
+  const { data: order, error, isLoading } = useSWR<DataResponse<OrderWithFullRelations>>('order-detail', () => apiRequest({ url: `orders/${params.id}` }), swrSettings)
 
-    // Manejo de errores
-    if (error) {
-      return <ErrorPage />;
-    }
-  
-    // Manejo de carga
-    if (isLoading || !order) {
-      return <OrderCardSkeleton key={1}/>
-    }
-  
+  // Manejo de errores
+  if (error) {
+    return <ErrorPage />;
+  }
+
+  // Manejo de carga
+  if (isLoading || !order) {
+    return <OrderCardSkeleton key={1} />
+  }
+
   return (
     <div className="container max-w-2xl mx-auto p-0 space-y-6">
       {/* Encabezado del pedido */}
@@ -35,6 +37,11 @@ export default function OrderDetail({params} : {params: Param}) {
         <CardHeader>
           <CardTitle className="text-xl font-semibold">
             Pedido #{order.data.id}
+            <Button asChild variant="default" className="ml-4">
+              <Link href={`/dashboard/pedidos/crear/${order.data.id}/detalle/crear`}>
+                Añadir un producto más al pedido
+              </Link>
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

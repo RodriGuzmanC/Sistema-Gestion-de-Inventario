@@ -12,6 +12,7 @@ import useSWR from 'swr'
 import { swrSettings } from '@/utils/swr/settings'
 import ErrorPage from '@/app/components/global/skeletons/ErrorPage'
 import OrderCardSkeleton from '@/app/components/skeletons/OrderSkeleton'
+import NotFound from '@/app/components/global/skeletons/NotFound'
 
 type Param = {
     id: string
@@ -30,7 +31,7 @@ export default function OrderDetail({ params }: { params: Param }) {
         const valores = Object.values(selectedValues).map((valor) => parseInt(valor));
 
         // Buscamos las variaciones que coincidan con los atributos seleccionados
-        if (producto?.variaciones.length == 0){
+        if (producto?.variaciones.length == 0) {
             return null
         }
         const variacionesFiltradas = producto?.variaciones.filter((variacion) =>
@@ -115,7 +116,7 @@ export default function OrderDetail({ params }: { params: Param }) {
                     precio_rebajado: order.precio_rebajado,
                     variacion_id: order.variacion?.id
                 }
-                const detallePedido: DataResponse<OrderDetail> = await apiRequest({url: `orders/${ordenPreparada.pedido_id}/order-details`, method: 'POST', body: ordenPreparada})
+                const detallePedido: DataResponse<OrderDetail> = await apiRequest({ url: `orders/${ordenPreparada.pedido_id}/order-details`, method: 'POST', body: ordenPreparada })
 
                 console.log("Ordenes agregadas")
                 console.log(detallePedido)
@@ -126,7 +127,7 @@ export default function OrderDetail({ params }: { params: Param }) {
                 const cantidadActualizar: Partial<Variation> = {
                     stock: order.variacion?.stock + order.cantidad
                 }
-                const variacionActualizada = await apiRequest({url: `products/1/variations/${detallePedido.data.variacion_id}`, method: 'PUT', body: cantidadActualizar})
+                const variacionActualizada = await apiRequest({ url: `products/1/variations/${detallePedido.data.variacion_id}`, method: 'PUT', body: cantidadActualizar })
                 console.log("Nuevo stock de la variacion: ", variacionActualizada)
             })
             toast("Tu pedido ha sido creado correctamente")
@@ -143,13 +144,13 @@ export default function OrderDetail({ params }: { params: Param }) {
         if (!selectedProduct) return;
 
         async function obtenerProductoSeleccionado() {
-            const producto: DataResponse<ProductWithFullRelations> = await apiRequest({url: `products/${selectedProduct}`})
+            const producto: DataResponse<ProductWithFullRelations> = await apiRequest({ url: `products/${selectedProduct}` })
             setProducto(producto.data)
         }
         obtenerProductoSeleccionado()
     }, [selectedProduct])
 
-    const { data: order, error: orderErr, isLoading: orderLoad } = useSWR<DataResponse<Order>>('order', () => apiRequest({url: `orders/${params.id}`}), swrSettings)
+    /*const { data: order, error: orderErr, isLoading: orderLoad } = useSWR<DataResponse<Order>>('order', () => apiRequest({url: `orders/${params.id}`}), swrSettings)
     const { data: products, error: proError, isLoading: proLoad } = useSWR<PaginatedResponse<ProductWithBasicRelations>>('products', () => apiRequest({url: `products`}), swrSettings)
     const { data: attributesTypes, error: catError, isLoading: catLoad } = useSWR<PaginatedResponse<AttributeTypesWithAttributes>>('attribute-types', () => apiRequest({url: `products/attributes-types`}), swrSettings)
     
@@ -173,7 +174,72 @@ export default function OrderDetail({ params }: { params: Param }) {
     
     // Condiciones para el renderizado:
     if (orderLoad || proLoad || catLoad) return <OrderCardSkeleton />
-    if (orderErr || proError || catError) return <ErrorPage />
+    if (orderErr || proError || catError) return <ErrorPage />*/
+
+    const { data, error, isLoading } = useSWR(
+        ['order-details', params.id],
+        async () => {
+            const orderPromise = apiRequest({ url: `orders/${params.id}` })
+            const productsPromise = apiRequest({ url: `products` })
+            const attributesTypesPromise = apiRequest({ url: `products/attributes-types` })
+
+            const [order, products, attributeTypes] = await Promise.all([
+                orderPromise,
+                productsPromise,
+                attributesTypesPromise
+            ])
+
+            return {
+                order: order as DataResponse<Order>,
+                products: products as PaginatedResponse<ProductWithBasicRelations>,
+                attributeTypes: attributeTypes as PaginatedResponse<AttributeTypesWithAttributes>,
+            }
+        },
+        swrSettings
+    )
+
+    // Efectos secundarios
+    useEffect(() => {
+        if (data?.order && !data.order.error) {
+            setEsMayorista(data.order.data.tipo_pedido)
+        }
+    }, [data?.order])
+
+    useEffect(() => {
+        if (data?.products && !data.products.error) {
+            setProductos(data.products.data)
+        }
+    }, [data?.products])
+
+    useEffect(() => {
+        if (data?.attributeTypes && !data.attributeTypes.error) {
+            setAtributos(data.attributeTypes.data)
+        }
+    }, [data?.attributeTypes])
+
+    if (isLoading || !data) return <OrderCardSkeleton />
+
+    // Renderizado en caso de error
+    if (
+        error ||
+        data.order?.error ||
+        data.products?.error ||
+        data.attributeTypes?.error
+    ) {
+        return <ErrorPage />
+    }
+
+    // Verificamos si alguno de los recursos clave está vacío
+    if (data.products.data.length === 0) {
+        return (
+            <NotFound
+                itemName="productos"
+                description="No hay productos disponibles para este pedido."
+                createLink="/dashboard/productos/crear"
+            />
+        )
+    }
+
 
     return (
         <div className="container mx-auto p-4">

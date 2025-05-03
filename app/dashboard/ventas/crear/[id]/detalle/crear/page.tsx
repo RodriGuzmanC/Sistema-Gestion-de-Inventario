@@ -136,7 +136,7 @@ export default function OrderDetail({ params }: { params: Param }) {
                 console.log("Nuevo stock de la variacion: ", VarActualizado)
             })
             toast("Tu pedido ha sido creado correctamente")
-            router.push("/dashboard/pedidos")
+            router.push("/dashboard/ventas")
         } catch (error) {
             console.error("No se puedo crear el detalle del pedido: ", error)
             toast("Ha ocurrido un error, intentalo mas tarde.")
@@ -184,7 +184,7 @@ export default function OrderDetail({ params }: { params: Param }) {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-6">Detalla tu nuevo pedido</h1>
+            <h1 className="text-2xl font-bold mb-6">Detalla tu nueva venta</h1>
 
             <div className="grid lg:grid-cols-2 gap-6">
                 {/* Left Column - Product Selection and Filtering */}

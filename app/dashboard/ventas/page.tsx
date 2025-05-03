@@ -7,6 +7,7 @@ import ErrorPage from '@/app/components/global/skeletons/ErrorPage'
 import useSWR from 'swr'
 import { swrSettings } from '@/utils/swr/settings'
 import { apiRequest } from '@/utils/utils'
+import NotFound from '@/app/components/global/skeletons/NotFound'
 
 
 
@@ -14,7 +15,7 @@ export default function SalesList() {
   const [filteredOrders, setFilteredOrders] = useState<OrderWithBasicRelations[]>([])
 
     // Hook SWR para obtener todas las solicitudes en paralelo
-    const { data, error, isLoading } = useSWR(
+    const { data, error, isLoading, mutate } = useSWR(
         ['sales', 'order-statuses', 'delivery-methods'],
         async () => {
             const ordersPromise = apiRequest({ url: 'orders?category=salida' });
@@ -48,6 +49,10 @@ export default function SalesList() {
         return <OrderCardSkeleton />;
     }
 
+    if (data.orders.data?.length === 0) {
+        return <NotFound itemName='Ventas' description='Parece que aun no haz creado ninguna venta' createLink='/dashboard/ventas/crear'></NotFound>
+    }
+
     return (
         <div className="container mx-auto">
             <h1 className="text-2xl font-bold mb-2">Ventas</h1>
@@ -63,7 +68,7 @@ export default function SalesList() {
                     <p className="text-center text-gray-500">No hay registros disponibles</p>
                 ) : (
                     filteredOrders.map((order) => (
-                        <OrderCard key={order.id} order={order} />
+                        <OrderCard key={order.id} order={order} mutate={mutate} />
                     ))
                 )}
             </div>
