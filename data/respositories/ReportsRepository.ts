@@ -5,7 +5,7 @@ export default new class ReportsRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     async getLastOrdersByMonthRepository(): Promise<ReportLastOrdersByMonth[]> {

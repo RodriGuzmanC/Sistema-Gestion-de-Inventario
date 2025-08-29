@@ -8,7 +8,7 @@ export default new class VariationRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     // Obtener todas las variaciones de un producto

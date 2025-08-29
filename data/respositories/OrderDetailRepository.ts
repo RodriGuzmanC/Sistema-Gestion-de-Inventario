@@ -6,7 +6,7 @@ export default new class OrderDetailRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     // Obtener todos los detalles de pedido

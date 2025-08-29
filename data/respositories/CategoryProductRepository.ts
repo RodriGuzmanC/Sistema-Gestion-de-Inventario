@@ -7,7 +7,7 @@ export default new class CategoryProductRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     async getProductCategories(productId: number, pages: number, itemsPerPage: number) : Promise<PaginatedResponse<CategoryProduct>> {

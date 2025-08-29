@@ -7,7 +7,7 @@ export default new class DeliveryMethodRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     async getDeliveryMethods(page: number, itemsPerPage: number): Promise<PaginatedResponse<DeliveryMethod[]>> {

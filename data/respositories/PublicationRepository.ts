@@ -5,7 +5,7 @@ export default new class PublicationRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     // Obtener todas las publicaciones

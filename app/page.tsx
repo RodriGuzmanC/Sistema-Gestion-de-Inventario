@@ -12,17 +12,7 @@ export default function ModernLogin() {
 
   const [isDark, setIsDark] = useState(false)
 
-  /*async function logIn(){
-    const supabase = createSupabaseClient()
   
-    const res = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${location.origin}/auth/callback`,
-      },
-    });
-    
-  }*/
 
 
   return (

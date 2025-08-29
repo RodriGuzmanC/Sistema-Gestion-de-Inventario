@@ -7,7 +7,7 @@ export default new class SocialNetworkRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     // Obtener todas las redes sociales

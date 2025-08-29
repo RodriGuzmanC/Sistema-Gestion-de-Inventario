@@ -7,7 +7,7 @@ export default new class AttributeTypesRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     async getAttributeTypes(): Promise<AttributeType[]> {

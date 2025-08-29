@@ -7,7 +7,7 @@ export default new class AttributeRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     async getAttributes(page: number, itemsPerPage: number): Promise<PaginatedResponse<Attribute>> {

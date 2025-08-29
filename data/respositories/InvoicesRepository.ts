@@ -6,7 +6,7 @@ export default new class InvoicesRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     async getInvoices(pages: number, itemsPerPage: number): Promise<PaginatedResponse<Invoice>> {

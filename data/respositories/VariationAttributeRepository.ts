@@ -7,7 +7,7 @@ export default new class VariationAttributeRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     // Obtener una variación de atributo específica por su ID

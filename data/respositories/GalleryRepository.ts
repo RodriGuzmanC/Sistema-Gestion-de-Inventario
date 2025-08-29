@@ -6,7 +6,7 @@ export default new class GalleryRepository {
     private client: SupabaseClient;
 
     constructor() {
-        this.client = createSupabaseClient();
+        this.client = createSupabaseClient;
     }
 
     async getGalleries(): Promise<Gallery[]> {

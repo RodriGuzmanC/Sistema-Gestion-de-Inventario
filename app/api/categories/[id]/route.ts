@@ -15,7 +15,7 @@ export async function GET(
     try {
         const data = await CategoryService.getOne(parseInt(id));
         // Retornar la respuesta
-        return new Response(JSON.stringify(data), {
+        return new NextResponse(JSON.stringify(data), {
             status: 200,
             headers: { "Content-Type": "application/json" }
         });
@@ -38,7 +38,7 @@ export async function PUT(
         const data = await request.json();
         const updatedData = await CategoryService.update(parseInt(id), data);
         // Retornar la respuesta
-        return new Response(JSON.stringify(updatedData), {
+        return new NextResponse(JSON.stringify(updatedData), {
             status: 200,
             headers: { "Content-Type": "application/json" }
         });
@@ -60,7 +60,7 @@ export async function DELETE(
     try {
         const deletedData = await CategoryService.delete(parseInt(id));
         // Retornar la respuesta
-        return new Response(JSON.stringify(deletedData), {
+        return new NextResponse(JSON.stringify(deletedData), {
             status: 200,
             headers: { "Content-Type": "application/json" }
         });
