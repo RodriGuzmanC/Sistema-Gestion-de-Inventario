@@ -48,7 +48,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-    request: Request,
+    _request: Request,
     { params }: { params: { id: string } } // Asegúrate de que el parámetro sea 'id'
 ) {
     const id = params.id; // Obtén el id directamente
