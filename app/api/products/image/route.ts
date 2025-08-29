@@ -4,6 +4,42 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
     try {
+        const formData = await request.formData();
+        const file = formData.get('file') as File;
+
+        if (!file) {
+            return NextResponse.json({ error: 'No se envió ninguna imagen' }, { status: 400 });
+        }
+
+        // Convertir el File en un buffer
+        const bytes = await file.arrayBuffer();
+        // Crear un Blob a partir del ArrayBuffer
+        const blob = new Blob([bytes], { type: file.type });
+
+        // Preparar el formData que Cloudinary espera
+        const cloudinaryForm = new FormData();
+        cloudinaryForm.append('file', blob, file.name);
+        cloudinaryForm.append('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET!);
+
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+        const cloudinaryRes = await fetch(
+            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+            {
+                method: 'POST',
+                body: cloudinaryForm,
+            }
+        );
+
+        const result = await cloudinaryRes.json();
+        console.log(result);
+        return NextResponse.json(result, { status: cloudinaryRes.status });
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: 'Error al subir la imagen' }, { status: 500 });
+    }
+}
+/*export async function POST(request: NextRequest) {
+    try {
         const body = await request.json();
 
         const { public_id } = body;
@@ -37,4 +73,4 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         return handleError(error)
     }
-}
+}*/
