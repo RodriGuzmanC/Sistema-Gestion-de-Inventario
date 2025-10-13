@@ -17,19 +17,21 @@ export default new class ClientRepository {
         const { data, error } = await this.client
             .from('clientes')
             .select('*')
-            .range(startIndex, endIndex);
+            .range(startIndex, endIndex)
+            .order('fecha_creacion', { ascending: false });
+
 
         if (error) {
             console.error('Error fetching client:', error);
             throw new Error('Unable to fetch client');
         }
-        
+
         // Obtener el total de items
         const { count: totalItems } = await this.client
             .from('clientes')
             .select('*', { count: 'exact' }); // Esto obtiene solo el total sin traer los registros completos
-        if (!totalItems){
-            throw new Error('Clients not found'); 
+        if (!totalItems) {
+            throw new Error('Clients not found');
         }
 
         // Calcular el total de páginas

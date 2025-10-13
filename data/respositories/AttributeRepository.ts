@@ -18,13 +18,15 @@ export default new class AttributeRepository {
         const { data, error } = await this.client
             .from('atributos')
             .select('*')
-            .range(startIndex, endIndex);
+            .range(startIndex, endIndex)
+            .order('id', { ascending: false });
+
 
         if (error) {
             console.error('Error fetching attributes:', error);
             throw new Error('Unable to fetch attributes');
         }
-        
+
         return makePagination<Attribute>(this.client, data, 'atributos', page, itemsPerPage)
     }
 

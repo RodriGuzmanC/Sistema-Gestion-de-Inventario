@@ -13,7 +13,9 @@ export default new class AttributeTypesRepository {
     async getAttributeTypes(): Promise<AttributeType[]> {
         const { data, error } = await this.client
             .from('tipos_atributos')
-            .select('*');
+            .select('*')
+            .order('id', { ascending: false });
+
 
         if (error) {
             console.error('Error fetching attributes types:', error);
@@ -30,7 +32,9 @@ export default new class AttributeTypesRepository {
         const { data, error } = await this.client
             .from('tipos_atributos')
             .select('*, atributos(*)')
-            .range(startIndex, endIndex);
+            .range(startIndex, endIndex)
+            .order('id', { referencedTable: 'atributos', ascending: false });
+
 
         if (error) {
             console.error('Error fetching attributes types with attributes:', error);
@@ -100,7 +104,7 @@ export default new class AttributeTypesRepository {
         const res: DataResponse<AttributeType> = {
             data: data[0] || null,
         }
-        return res; 
+        return res;
     }
 
     async deleteAttributeType(id: number): Promise<DataResponse<AttributeType>> {

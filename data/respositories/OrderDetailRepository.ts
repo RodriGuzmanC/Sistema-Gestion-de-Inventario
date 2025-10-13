@@ -19,7 +19,9 @@ export default new class OrderDetailRepository {
             .from('detalles_pedidos')
             .select('*')
             .eq('pedido_id', orderId)
-            .range(startIndex, endIndex);
+            .range(startIndex, endIndex)
+            .order('id', { ascending: false });
+
 
 
         if (error) {

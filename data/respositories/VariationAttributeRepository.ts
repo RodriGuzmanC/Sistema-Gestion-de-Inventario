@@ -40,7 +40,9 @@ export default new class VariationAttributeRepository {
             .from('variaciones_atributos')
             .select('*')
             .eq('variacion_id', variationId)
-            .range(startIndex, endIndex);
+            .range(startIndex, endIndex)
+            .order('id', { ascending: false });
+
 
         if (error) {
             console.error('Error fetching variation attributes by variation ID:', error);

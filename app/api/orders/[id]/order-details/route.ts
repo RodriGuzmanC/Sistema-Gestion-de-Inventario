@@ -32,10 +32,29 @@ export async function GET(
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(
+    request: NextRequest,
+) {
     try {
+        // Busqueda de parametros
+        const searchParams = request.nextUrl.searchParams
+        const orderCategory = searchParams.get('orderCategory')
+
+        if (!orderCategory) {
+            return NextResponse.json({ error: 'Order Type is required' }, { status: 400 });
+        }
+
+        if (orderCategory != 'entrada') {
+            if (orderCategory != 'salida') {
+                return NextResponse.json({ error: 'Order Type is not valid' }, { status: 400 });
+
+            }
+        }
+
+
+
         const data = await request.json();
-        const newOrder = await OrderDetailService.create(data);
+        const newOrder = await OrderDetailService.create(data, orderCategory);
         return NextResponse.json(newOrder, { status: 201 });
     } catch (error) {
         return handleError(error)

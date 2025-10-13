@@ -19,12 +19,14 @@ export default new class ProductRepository {
         const { data, error } = await this.client
             .from('productos')
             .select('*, galerias(*), estados_productos(*), variaciones(*, variaciones_atributos(*, atributos(*, tipos_atributos(*)))), categorias_productos(*, categorias(*)), publicaciones(*, redes(*))')
-            .range(startIndex, endIndex); // Paginación
+            .range(startIndex, endIndex) // Paginación
+            .order('id', { ascending: false });
 
-            if (error) {
-                console.error('Error fetching products:', error);
-                throw new Error('Unable to fetch products');
-            }
+
+        if (error) {
+            console.error('Error fetching products:', error);
+            throw new Error('Unable to fetch products');
+        }
 
         // Obtener el total de items
         /*const { count: totalItems } = await this.client
@@ -53,7 +55,7 @@ export default new class ProductRepository {
         return paginatedData;*/
 
         return makePagination<ProductWithFullRelations>(this.client, data, 'productos', pages, itemsPerPage)
-        
+
     }
 
     // Obtener todos los productos
@@ -62,6 +64,7 @@ export default new class ProductRepository {
             .from('productos')
             .select('*, galerias(*), estados_productos(*), variaciones(*, variaciones_atributos(*, atributos(*, tipos_atributos(*)))), categorias_productos(*, categorias(*)), publicaciones(*, redes(*))')
             .eq('id', id)
+            .order('id', { referencedTable: 'variaciones', ascending: false })
             .single();
 
         if (error) {

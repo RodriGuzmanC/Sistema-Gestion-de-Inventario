@@ -10,7 +10,7 @@ export default new class CategoryRepository {
         this.client = createSupabaseClient;
     }
 
-    
+
 
     async getCategories(pages: number, itemsPerPage: number): Promise<PaginatedResponse<Category>> {
         // Calcular los índices de paginación
@@ -20,7 +20,9 @@ export default new class CategoryRepository {
         const { data, error } = await this.client
             .from('categorias')
             .select('*')
-            .range(startIndex, endIndex);
+            .range(startIndex, endIndex)
+            .order('id', { ascending: false });
+
 
         if (error) {
             console.error('Error fetching categories:', error);
@@ -110,5 +112,5 @@ export default new class CategoryRepository {
 
     }
 
-    
+
 }

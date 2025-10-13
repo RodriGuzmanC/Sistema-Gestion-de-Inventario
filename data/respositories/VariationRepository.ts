@@ -21,13 +21,15 @@ export default new class VariationRepository {
             .from('variaciones')
             .select('*')
             .eq('producto_id', productId)
-            .range(startIndex, endIndex);
+            .range(startIndex, endIndex)
+            .order('id', { ascending: false });
+
 
         if (error) {
             console.error('Error fetching variations:', error);
             throw new Error('Unable to fetch variations');
         }
-        
+
         return makePagination<Variation[]>(this.client, data, 'variaciones', page, itemsPerPage)
 
     }

@@ -35,10 +35,10 @@ export default new class OrderService {
         }
     }
 
-    async getAllByDateAndClient(startDate: string, endDate: string, clientId: number): Promise<OrderWithBasicRelations[]> {
+    async getAllByDateAndClient(stateId: OrderStatus['id'], startDate: string, endDate: string, orderCategory: string, clientId: number): Promise<DataResponse<OrderWithFullRelations[]>> {
         try {
             // Llamamos al repositorio para obtener la orden por su ID
-            return await OrderRepository.getOrdersByDateRangeAndClient(startDate, endDate, clientId);
+            return await OrderRepository.getOrdersByDateRangeAndClient(stateId, startDate, endDate, orderCategory, clientId);
         } catch (error) {
             if(error instanceof Error) {
                 console.error('Error in OrderService:', error.message);

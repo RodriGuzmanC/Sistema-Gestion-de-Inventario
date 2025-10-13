@@ -33,7 +33,9 @@ export default new class OrderRepository {
                 estados_pedidos(*), 
                 metodos_entregas(*)`)
             .range(startIndex, endIndex) // Paginación
-            .eq('categoria_pedido', category) // Solo pedidos de salida
+            .eq('categoria_pedido', category)
+            .order('fecha_creacion', { ascending: false });
+
 
 
         if (error) {
@@ -59,7 +61,7 @@ export default new class OrderRepository {
                 total_paginas: totalPaginas,
             },
         };*/
-        
+
         return makePagination<OrderWithFullRelations>(this.client, data, 'pedidos', pages, itemsPerPage, 'categoria_pedido', category)
 
         //return paginatedData;
@@ -96,21 +98,43 @@ export default new class OrderRepository {
             data: data || null,
         }
         return res;
+
+
     }
 
-    async getOrdersByDateRangeAndClient(startDate: string, endDate: string, clientId: number): Promise<OrderWithBasicRelations[]> {
+    async getOrdersByDateRangeAndClient(stateId: OrderStatus['id'], startDate: string, endDate: string, orderCategory: string, clientId: number): Promise<DataResponse<OrderWithFullRelations[]>> {
         const { data, error } = await this.client
             .from('pedidos')
-            .select('*, estados_pedidos(*), metodos_entregas(*), clientes(*)')
+            //.select('*, estados_pedidos(*), metodos_entregas(*), clientes(*)')
+            .select(`*, 
+                detalles_pedidos(*, 
+                    variaciones(*, 
+                        productos(*), 
+                        variaciones_atributos(*, 
+                            atributos(*, 
+                                tipos_atributos(*)
+                            )
+                        )
+                    )
+                ),
+                clientes(*), 
+                estados_pedidos(*), 
+                metodos_entregas(*)`)
             .gte('fecha_entrega', startDate)
-            .lte('fecha_entrega', endDate)
-            .eq('cliente_id', clientId);
-    
+            .lt('fecha_entrega', endDate)
+            .eq('estado_pedido_id', stateId)
+            .eq('categoria_pedido', orderCategory)
+            .eq('cliente_id', clientId)
+            .order('fecha_creacion', { ascending: false });
+
         if (error) {
             console.error('Error fetching orders by date range:', error);
             throw new Error('Unable to fetch orders by date range');
         }
-        return data || [];
+        const res: DataResponse<OrderWithFullRelations[]> = {
+            data: data || null,
+        }
+        return res;
     }
 
     // Crear un nuevo pedido
@@ -131,7 +155,7 @@ export default new class OrderRepository {
         const res: DataResponse<Order> = {
             data: data[0] || null,
         }
-        return res; 
+        return res;
     }
 
     // Actualizar un pedido existente
